@@ -1,6 +1,6 @@
 #!/bin/bash
 # Ship a new Mac version to friends in one go:
-#   version bump → build + Developer ID sign → DMG → Apple notarization → website download → deploy.
+#   version bump → build + Developer ID sign → DMG → Apple notarization → website download → deploy → GitHub release.
 #
 #   ./release.sh 0.2.2
 set -euo pipefail
@@ -50,3 +50,11 @@ for i in 1 2 3 4 5 6; do
   sleep 10
 done
 [ "$REMOTE" = "$(shasum -a 256 "$DMG" | awk '{print $1}')" ] && echo "✓ live and identical: $URL" || { echo "✗ website file differs from local DMG"; exit 1; }
+
+# 5. GitHub: commit the version bump + site, and attach the DMG to a release
+if git remote get-url origin >/dev/null 2>&1; then
+  git add -A && git commit -q -m "Release $NEW" && git push -q
+  cp "$DMG" "${TMPDIR:-/tmp}/Crumbs-$NEW.dmg"
+  gh release create "v$NEW" "${TMPDIR:-/tmp}/Crumbs-$NEW.dmg" --title "Crumbs $NEW" --generate-notes \
+    && echo "✓ GitHub release v$NEW"
+fi
