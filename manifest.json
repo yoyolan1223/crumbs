@@ -1,0 +1,33 @@
+{
+  "manifest_version": 3,
+  "name": "麵包屑 Crumbs",
+  "short_name": "Crumbs",
+  "version": "0.4.1",
+  "description": "給分心大腦的小麻雀：自動記下你開過的分頁、在每頁做什麼，並幫你排好下一步。",
+  "icons": { "16": "icons/16.png", "32": "icons/32.png", "48": "icons/48.png", "128": "icons/128.png" },
+  "action": { "default_title": "打開麵包屑", "default_icon": { "16": "icons/16.png", "32": "icons/32.png" } },
+  "side_panel": { "default_path": "sidepanel.html" },
+  "background": { "service_worker": "background.js" },
+  "permissions": ["tabs", "storage", "sidePanel", "scripting", "favicon"],
+  "host_permissions": ["http://*/*", "https://*/*"],
+  "content_scripts": [
+    {
+      "matches": ["http://*/*", "https://*/*"],
+      "js": ["shared.js", "content.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  "web_accessible_resources": [
+    { "resources": ["_favicon/*"], "matches": ["http://*/*", "https://*/*"], "extension_ids": ["*"] }
+  ],
+  "commands": {
+    "_execute_action": {
+      "suggested_key": { "default": "Alt+Shift+C" },
+      "description": "打開麵包屑側欄"
+    },
+    "show-trail": {
+      "suggested_key": { "default": "Alt+Shift+Z" },
+      "description": "我剛剛在幹嘛？（在頁面上顯示足跡）"
+    }
+  }
+}

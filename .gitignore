@@ -1,0 +1,19 @@
+# build outputs & binaries (DMGs are published on the website / GitHub Releases)
+dist/
+mac/build.noindex/
+site/downloads/
+*.dmg
+*.zip
+
+# private: stats key, deploy cache, personal handoff notes
+.stats-key
+.wrangler/
+node_modules/
+HANDOFF.md
+SHARE.md
+AGENTS.md
+CLAUDE.md
+新手安裝說明.md
+網站預覽-*.png
+
+.DS_Store

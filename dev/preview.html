@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>麵包屑 Preview</title>
+  <style>
+    :root { --bg: #E9E3D8; --chrome: #DDD5C8; --ink: #33291F; --ink-2: #7A6A5A; }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--bg); color: var(--ink); font: 14px/1.5 -apple-system, "PingFang TC", sans-serif; height: 100vh; display: flex; flex-direction: column; }
+    .strip { display: flex; gap: 2px; padding: 8px 8px 0; background: var(--chrome); overflow-x: auto; }
+    .tab { flex: none; max-width: 170px; padding: 7px 12px; border-radius: 10px 10px 0 0; background: transparent; border: 0; font: inherit; font-size: 12px; color: var(--ink-2); cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .tab:hover { background: rgba(255,255,255,.35); }
+    .tab.on { background: #fff; color: var(--ink); }
+    .body { flex: 1; display: flex; min-height: 0; }
+    .page { flex: 1; background: #fff; display: grid; place-items: center; color: #b9ad9d; font-size: 13px; text-align: center; padding: 24px; position: relative; }
+    .page h1 { font-size: 22px; color: #6d6154; margin: 0 0 6px; font-weight: 600; }
+    iframe { width: 380px; border: 0; border-left: 1px solid var(--chrome); background: #FBF5EA; }
+    @media (max-width: 760px) { .page { display: none; } iframe { width: 100%; } }
+  </style>
+</head>
+<body>
+  <nav class="strip" id="strip"></nav>
+  <div class="body">
+    <div class="page"><div><h1 id="pageTitle">Instagram</h1>點上面的分頁切換看看：頂部會掉下來一張「剛剛你在…」的小卡，右邊側欄會即時更新。</div></div>
+    <iframe src="panel.html" title="麵包屑側欄"></iframe>
+  </div>
+  <script src="../shared.js"></script>
+  <script src="mock-chrome.js"></script>
+  <script src="../content.js"></script>
+  <script>
+    const C = self.Crumbs;
+    const seen = new Map();
+    for (const c of __mock.state.crumbs) seen.set(c.tabId, c);
+    const strip = document.getElementById('strip');
+    function drawTabs() {
+      const cur = C.currentCrumb(__mock.state);
+      strip.innerHTML = [...seen.values()].map((c) =>
+        `<button class="tab ${cur && cur.tabId === c.tabId ? 'on' : ''}" data-id="${c.id}">${C.esc(c.title || c.site)}</button>`).join('');
+      document.getElementById('pageTitle').textContent = cur ? cur.title : '';
+    }
+    strip.addEventListener('click', (e) => {
+      const b = e.target.closest('.tab');
+      if (b) chrome.runtime.sendMessage({ type: 'jump', crumbId: b.dataset.id });
+    });
+    window.__crumbsDemoToast = (st, res) => {
+      if (!st.settings.toast) {
+        // Pop-ups are off by default now: only the comeback cheer shows, next to the sparrow handle.
+        if (res.cheer) __mock.fire({ type: 'crumbs:cheer', n: res.cheer.n, text: C.cheerLine(res.cheer) });
+        return;
+      }
+      const slim = (c) => ({ id: c.id, taskKey: c.taskKey, url: c.url, verb: c.verb, subject: c.subject, site: c.site, activeMs: c.activeMs, note: c.note, startedAt: c.startedAt });
+      const trail = C.recentPlaces(st, res.crumb).map(slim);
+      __mock.fire({ type: 'crumbs:toast', prev: slim(res.prev), trail, current: slim(res.crumb), cheer: res.cheer && { n: res.cheer.n, text: C.cheerLine(res.cheer) } });
+    };
+    chrome.storage.onChanged.addListener(drawTabs);
+    drawTabs();
+  </script>
+</body>
+</html>

@@ -1,0 +1,6 @@
+User-agent: *
+Allow: /
+Disallow: /stats
+Disallow: /api/
+
+Sitemap: https://crumbs.01-crumbs.workers.dev/sitemap.xml

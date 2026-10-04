@@ -1,0 +1,9 @@
+/* Mac-only tweaks to the extension's UI */
+html.mac, html.mac body { -webkit-user-select: none; user-select: none; }
+html.mac input, html.mac textarea { -webkit-user-select: text; user-select: text; }
+/* The in-page sparrow / pop-up switches are browser-only. */
+html.mac .switches { display: none; }
+html.mac footer { justify-content: flex-end; }
+/* Leave room for the window's traffic lights (transparent title bar). */
+html.mac #app { padding-top: 34px; }
+html.mac #dash { padding-top: 40px; }

@@ -1,0 +1,258 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Crumbs — “Wait, what was I doing?” A free Mac app for distracted (ADHD) brains</title>
+  <meta name="description" content="Crumbs is a little sparrow in your Mac menu bar that remembers every app, window and tab you hop through. Double-tap ⌃ to jump back to what you were doing. Free, open source, no account, and your data never leaves your Mac.">
+  <meta name="keywords" content="ADHD app Mac, what was I doing, context switching, task switching, distraction, focus, time tracker Mac, free, open source">
+  <link rel="canonical" href="https://crumbs.01-crumbs.workers.dev/en/">
+  <link rel="alternate" hreflang="zh-Hant" href="https://crumbs.01-crumbs.workers.dev/">
+  <link rel="alternate" hreflang="en" href="https://crumbs.01-crumbs.workers.dev/en/">
+  <link rel="alternate" hreflang="x-default" href="https://crumbs.01-crumbs.workers.dev/en/">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://crumbs.01-crumbs.workers.dev/en/">
+  <meta property="og:site_name" content="Crumbs">
+  <meta property="og:locale" content="en_US">
+  <meta property="og:title" content="Crumbs — “Wait, what was I doing?”">
+  <meta property="og:description" content="A little sparrow in your Mac menu bar. Double-tap ⌃ to get back to what you were doing. Free & open source.">
+  <meta property="og:image" content="https://crumbs.01-crumbs.workers.dev/img/og-en.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:image" content="https://crumbs.01-crumbs.workers.dev/img/og-en.png">
+  <link rel="icon" href="../img/appicon.png">
+  <link rel="apple-touch-icon" href="../img/appicon.png">
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"SoftwareApplication","name":"Crumbs","alternateName":"Crumbs 麵包屑","applicationCategory":"ProductivityApplication","operatingSystem":"macOS 14+","description":"A little sparrow in your Mac menu bar that remembers the apps, windows and tabs you hop through. Double-tap ⌃ to get back to what you were doing.","url":"https://crumbs.01-crumbs.workers.dev/en/","downloadUrl":"https://crumbs.01-crumbs.workers.dev/downloads/Crumbs-0.2.3.dmg","softwareVersion":"0.2.3","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"image":"https://crumbs.01-crumbs.workers.dev/img/appicon.png","sameAs":["https://github.com/yoyolan1223/crumbs"]}</script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=LXGW+WenKai+TC:wght@400;700&family=Noto+Sans+TC:wght@400;500;700&display=swap">
+  <link rel="stylesheet" href="../style.css">
+</head>
+<body>
+  <header class="nav">
+    <a class="brand" href="#top"><img src="../img/sparrow.png" alt="" width="34" height="34"><span>Crumbs <b lang="zh-Hant">麵包屑</b></span></a>
+    <nav>
+      <a href="#features">Features</a>
+      <a href="#install">Install</a>
+      <a href="#faq">FAQ</a>
+      <a href="https://github.com/yoyolan1223/crumbs">GitHub</a>
+    </nav>
+    <a class="lang" href="../" hreflang="zh-Hant" lang="zh-Hant">中文</a>
+    <a class="btn small" data-track="EN download: nav" href="../downloads/Crumbs-0.2.3.dmg" download="Crumbs-麵包屑-0.2.3.dmg">Download</a>
+  </header>
+
+  <main id="top">
+    <!-- ── Hero ─────────────────────────────── -->
+    <section class="hero">
+      <div class="hero-copy">
+        <p class="eyebrow">For easily distracted brains 🐦</p>
+        <h1>Got distracted?<br><span class="nb">Pick up right</span> where you left off.</h1>
+        <p class="lead">Crumbs is a little sparrow that lives in your Mac menu bar. As you hop between apps, windows and tabs, it quietly picks up the breadcrumbs. When you can't remember what you were doing, <strong>double-tap <kbd>⌃</kbd></strong> and it takes you right back.</p>
+        <div class="cta">
+          <a class="btn" data-track="EN download: hero" href="../downloads/Crumbs-0.2.3.dmg" download="Crumbs-麵包屑-0.2.3.dmg">
+            <svg viewBox="0 0 20 20" width="18" height="18" aria-hidden="true"><path d="M10 3v10m-4-4 4 4 4-4M4 16h12" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            Download for Mac — free
+          </a>
+          <span class="meta">0.2.3 · 1.0 MB · macOS 14+ · Apple silicon</span>
+        </div>
+        <ul class="trust">
+          <li>✓ Notarized by Apple</li>
+          <li>✓ No sign-up, no login</li>
+          <li>✓ Data stays on your Mac</li>
+          <li>✓ <a href="https://github.com/yoyolan1223/crumbs">Open source</a></li>
+        </ul>
+        <p class="ui-note">Heads-up: the app's interface is in Traditional Chinese for now. An English UI is on the way — <a href="https://github.com/yoyolan1223/crumbs">star the repo</a> to follow along.</p>
+      </div>
+
+      <!-- Live demo: switch apps → double-tap ⌃ → the bar rises → jump back -->
+      <div class="stage" id="stage" aria-label="Animation: after switching between apps, double-tap Control to bring up Crumbs and jump back to the slides you were working on">
+        <div class="menubar"><span></span><img src="../img/sparrow.png" alt="" width="16" height="16"><span class="clock">2:32 PM</span></div>
+        <div class="win" id="win">
+          <div class="win-bar"><i></i><i></i><i></i><span id="winTitle">Final paper.docx — Word</span></div>
+          <div class="win-body" id="winBody"></div>
+        </div>
+        <div class="keys" id="keys"><kbd>⌃</kbd><kbd>⌃</kbd></div>
+        <div class="bar" id="bar">
+          <div class="bar-head">
+            <img src="../img/sparrow.png" alt="" width="34" height="34">
+            <div><small>You were just</small><p><b>Making slides</b> · Seed pitch deck v3</p></div>
+            <span class="dur">12 min</span>
+            <span class="open">Open ⤢</span>
+          </div>
+          <div class="said">You said: finish the market size on page 8</div>
+          <ul class="places" id="places">
+            <li class="sel"><i class="ic ic-g"></i><b>Slides</b> · Seed pitch deck v3<span>Chrome</span></li>
+            <li><i class="ic ic-w"></i><b>Writing</b> · Final paper.docx<span>Word</span></li>
+            <li><i class="ic ic-l"></i><b>Messages</b> · Sam<span>Messages</span></li>
+            <li><i class="ic ic-f"></i><b>Design</b> · Pricing page v2<span>Figma</span></li>
+          </ul>
+          <div class="note">✎ What were you going to do in “Messages”?</div>
+        </div>
+        <p class="caption" id="caption">Hopping between apps…</p>
+      </div>
+    </section>
+
+    <!-- ── Three moments ────────────────────── -->
+    <section class="moments" id="features">
+      <h2>Three moments you know too well</h2>
+
+      <article class="moment">
+        <div class="m-copy">
+          <span class="num">1</span>
+          <h3>“Wait… what was I doing?”</h3>
+          <p><strong>Double-tap <kbd>⌃</kbd> Control</strong> in any app and a bar slides up from the bottom of your screen: where you just were, how long you stayed, and what you said you'd do there.</p>
+          <ul class="ticks">
+            <li><kbd>↑</kbd><kbd>↓</kbd> to pick, <kbd>Enter</kbd> to jump back to that exact app, document or tab</li>
+            <li>Just start typing to leave yourself a note — it reminds you next time you come back</li>
+            <li>Works across multiple Chrome profiles, all in one trail</li>
+          </ul>
+        </div>
+        <div class="m-shot bar-shot">
+          <div class="bar static">
+            <div class="bar-head">
+              <img src="../img/sparrow.png" alt="" width="34" height="34">
+              <div><small>You were just</small><p><b>Writing</b> · Final paper.docx</p></div>
+              <span class="dur">18 min</span>
+              <span class="open">Open ⤢</span>
+            </div>
+            <div class="said">You said: make the conclusion shorter</div>
+            <ul class="places">
+              <li class="sel"><i class="ic ic-w"></i><b>Writing</b> · Final paper.docx<span>Word</span></li>
+              <li><i class="ic ic-g"></i><b>Searching</b> · “working memory interventions”<span>Chrome</span></li>
+              <li><i class="ic ic-l"></i><b>Messages</b> · Sam<span>Messages</span></li>
+            </ul>
+            <div class="hint">↑↓ select · Enter jump back · ⌫ delete · type to add a note</div>
+          </div>
+          <p class="shot-cap">The bar you get with ⌃⌃ (illustration)</p>
+        </div>
+      </article>
+
+      <article class="moment flip">
+        <div class="m-copy">
+          <span class="num">2</span>
+          <h3>“So many things open. Which one first?”</h3>
+          <p>Hit <strong>Open</strong> on the bar and Crumbs turns everything you touched today into a to-do list — and tells you <strong>why</strong> one comes first: half-finished work, the things you spent the most time on, and the ones you keep coming back to rise to the top.</p>
+          <ul class="ticks">
+            <li>Check off, track progress in four steps, drag to reorder</li>
+            <li>Closed windows leave the list on their own, so it never piles up</li>
+            <li>Something just popped into your head? Toss it in the list</li>
+          </ul>
+        </div>
+        <figure class="m-shot phone"><img src="../img/panel-next.png" alt="The “Up next” list in the main window, suggesting which task to do first and how far along it is" loading="lazy" width="560" height="960"><figcaption>Main window · “Up next”</figcaption></figure>
+      </article>
+
+      <article class="moment">
+        <div class="m-copy">
+          <span class="num">3</span>
+          <h3>“Where did my week go?”</h3>
+          <p><strong>Weekly review</strong> sorts your time into your own projects: where each day went, how it compares to last week, and which things ate the most hours. Add a few keywords and it files things for you.</p>
+          <ul class="ticks">
+            <li>Time across your whole Mac, not just the browser</li>
+            <li>See how many times you pulled yourself back from a distraction</li>
+          </ul>
+        </div>
+        <figure class="m-shot wide"><img src="../img/dashboard.png" alt="Weekly review: a bar chart of time per project for each day, plus a project list" loading="lazy" width="1000" height="1180"><figcaption>Weekly review</figcaption></figure>
+      </article>
+
+      <article class="moment flip">
+        <div class="m-copy">
+          <span class="num">🍞</span>
+          <h3>Getting distracted never costs you points</h3>
+          <p>Finishing something, moving a task one step forward, <strong>coming back from your phone to the real work</strong> — each drops a crumb into your jar. We reward coming back, instead of scolding you for drifting off.</p>
+        </div>
+        <figure class="m-shot phone"><img src="../img/panel-jar.png" alt="The crumb jar: 9 of 24 crumbs today, a 4-day streak of finishing things" loading="lazy" width="560" height="960"><figcaption>Main window · “Jar”</figcaption></figure>
+      </article>
+    </section>
+
+    <!-- ── Install ──────────────────────────── -->
+    <section class="install" id="install">
+      <h2>Set up in a minute</h2>
+      <ol class="steps">
+        <li>
+          <div class="ill ill-drag" aria-hidden="true">
+            <div class="ill-app"><img src="../img/appicon.png" alt="" width="64" height="64"><span>Crumbs</span></div>
+            <svg class="arrow" viewBox="0 0 80 24" width="80" height="24"><path d="M2 12h70m-10-8 10 8-10 8" stroke="currentColor" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <div class="ill-folder"><svg viewBox="0 0 64 52" width="64" height="52"><path d="M4 10a4 4 0 0 1 4-4h16l6 6h26a4 4 0 0 1 4 4v28a4 4 0 0 1-4 4H8a4 4 0 0 1-4-4z" fill="#5AA7F0"/><path d="M4 18h56v26a4 4 0 0 1-4 4H8a4 4 0 0 1-4-4z" fill="#7BBDF7"/><path d="M26 26l6 10 6-10" stroke="#fff" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Applications</span></div>
+          </div>
+          <h3><span>1</span>Drag to Applications</h3>
+          <p>Open the downloaded <code>.dmg</code> and drag the sparrow into the Applications folder next to it.</p>
+        </li>
+        <li>
+          <div class="ill ill-menubar" aria-hidden="true">
+            <div class="mb"><span>Finder</span><span class="sp"></span><img src="../img/sparrow.png" alt="" width="18" height="18" class="glow"><span>📶</span><span>2:32</span></div>
+            <div class="mb-menu">
+              <p class="dim">You were just: making slides</p>
+              <hr><p>Open main window</p><p>📊 Weekly review</p><p>Shortcut ▸</p><hr><p>Launch at login ✓</p>
+            </div>
+          </div>
+          <h3><span>2</span>Open it</h3>
+          <p>Open <b>Crumbs 麵包屑</b> from Applications and a little sparrow appears in the menu bar. Then eject the installer disk (⏏ in the Finder sidebar).</p>
+        </li>
+        <li>
+          <div class="ill ill-ax" aria-hidden="true">
+            <div class="set-head">Privacy &amp; Security › <b>Accessibility</b></div>
+            <div class="set-row"><span class="set-ic">🔤</span>Other app<span class="tog"></span></div>
+            <div class="set-row hl"><img src="../img/appicon.png" alt="" width="22" height="22">Crumbs 麵包屑<span class="tog on"></span></div>
+            <div class="set-row"><span class="set-ic">⌨️</span>Other app<span class="tog"></span></div>
+          </div>
+          <h3><span>3</span>Allow two permissions</h3>
+          <p><b>Accessibility</b>: System Settings → Privacy &amp; Security → Accessibility → turn on “Crumbs 麵包屑”.<br><b>Browser automation</b>: macOS asks the first time you switch to Chrome / Safari — click OK.</p>
+        </li>
+      </ol>
+
+      <div class="why">
+        <h3>Why these two permissions?</h3>
+        <div class="why-grid">
+          <div><b>Accessibility</b><p>Lets Crumbs read window titles (say, which file is open in Word), listen for the double-tap ⌃, and switch you back to that window. It works without it, but only records app names.</p></div>
+          <div><b>Browser automation</b><p>Lets Crumbs know which page you're on and switch you back to that tab. It only reads tab URLs and titles — never page content.</p></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── Shortcuts ────────────────────────── -->
+    <section class="keys-table">
+      <h2>How to use it</h2>
+      <table>
+        <tr><th>I want to…</th><th>Do this</th></tr>
+        <tr><td>Ask “what was I doing?”</td><td><b>Double-tap <kbd>⌃</kbd></b> anywhere (or <kbd>⌃</kbd><kbd>⌥</kbd><kbd>Z</kbd>)</td></tr>
+        <tr><td>Jump back to a place</td><td><kbd>↑</kbd><kbd>↓</kbd> to pick, <kbd>Enter</kbd></td></tr>
+        <tr><td>Leave a note for this place</td><td>Just type, then <kbd>Enter</kbd></td></tr>
+        <tr><td>Delete a crumb</td><td>Select it and press <kbd>⌫</kbd>, or click the ✕</td></tr>
+        <tr><td>See to-dos, trail, jar and weekly review</td><td>“Open” on the bar, double-click the bar, or <kbd>⌘</kbd><kbd>O</kbd></td></tr>
+        <tr><td>Change the shortcut, pause, launch at login</td><td>Click the sparrow in the menu bar</td></tr>
+      </table>
+      <p class="tip">Clashes with another app's “double-tap ⌥” (like Claude)? Sparrow in the menu bar → “Shortcut” → switch to right ⌥ or right ⌘.</p>
+    </section>
+
+    <!-- ── FAQ ──────────────────────────────── -->
+    <section class="faq" id="faq">
+      <h2>FAQ</h2>
+      <details open><summary>Is my data uploaded anywhere?</summary><p>No. Everything stays on your own Mac (<code>~/Library/Application Support/Crumbs</code>). No account, no server. Crumbs only records app names, window titles, page URLs and time spent — it never reads content, takes screenshots or logs your keystrokes.</p></details>
+      <details><summary>Is it free?</summary><p>Yes, completely free right now.</p></details>
+      <details><summary>Is it open source?</summary><p>Yes. All the code is on <a href="https://github.com/yoyolan1223/crumbs">GitHub</a> under the MIT license, so you can check exactly what it records and confirm nothing is sent anywhere. Issues and ideas are welcome — and if you like it, a ⭐ helps a lot.</p></details>
+      <details><summary>Is the app in English?</summary><p>Not yet — the interface is currently in Traditional Chinese. The shortcuts and the flow are simple enough to use as-is, and an English UI is planned. Want it sooner? Open an issue on GitHub.</p></details>
+      <details><summary>Is this an ADHD app?</summary><p>It was built for brains that jump around — ADHD or not. It doesn't diagnose or treat anything; it just helps with the moment of “what was I doing?” after an interruption, which is hard for everyone and especially hard with ADHD.</p></details>
+      <details><summary>Does it work on Intel Macs?</summary><p>Only Apple silicon (M1 / M2 / M3 / M4) for now. An Intel build is planned.</p></details>
+      <details><summary>Why isn't it on the Mac App Store?</summary><p>App Store apps can't read other apps' windows or switch your browser tabs — the two things Crumbs needs most. So it's signed with an Apple Developer ID and notarized by Apple instead, and opens without any security warnings.</p></details>
+      <details><summary>Does it keep counting when I walk away?</summary><p>No. It stops after 5 minutes of inactivity, or when your screen locks or your Mac sleeps.</p></details>
+      <details><summary>How do I uninstall it?</summary><p>Click the sparrow in the menu bar → Quit, then drag Crumbs 麵包屑 from Applications to the Trash. To delete your data too, remove <code>~/Library/Application Support/Crumbs</code>.</p></details>
+      <details><summary>I only work in the browser. Is there a Chrome version?</summary><p>Yes — a Chrome extension (a sparrow on the right edge of the page plus a side panel) is getting ready for the Chrome Web Store. You can already load it from the GitHub repo.</p></details>
+    </section>
+
+    <section class="final">
+      <img src="../img/sparrow.png" alt="" width="72" height="72">
+      <h2>Let the sparrow follow you</h2>
+      <a class="btn" data-track="EN download: footer" href="../downloads/Crumbs-0.2.3.dmg" download="Crumbs-麵包屑-0.2.3.dmg">Download for Mac — free</a>
+      <p class="meta">0.2.3 · macOS 14+ · Apple silicon</p>
+    </section>
+  </main>
+
+  <footer>
+    <p>Crumbs 麵包屑 · made with 🍞 · <a href="privacy.html">Privacy</a> · <a href="https://github.com/yoyolan1223/crumbs">GitHub</a> · <a href="../" hreflang="zh-Hant" lang="zh-Hant">中文</a> · <a href="mailto:yolanda921223@gmail.com">Contact</a></p>
+  </footer>
+
+  <script src="../demo.js"></script>
+  <script src="../track.js" defer></script>
+</body>
+</html>

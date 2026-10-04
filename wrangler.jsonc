@@ -1,0 +1,22 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "crumbs",
+  "main": "worker/index.js",
+  "compatibility_date": "2026-10-01",
+  "observability": {
+    "enabled": true
+  },
+  "assets": {
+    "directory": "site",
+    "binding": "ASSETS",
+    // the worker sees these first: page-view beacon, download counter, private stats page
+    "run_worker_first": ["/api/*", "/downloads/*", "/stats"]
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "crumbs-stats",
+      "database_id": "7396ba0d-c84a-4305-a554-711c583d3b7e"
+    }
+  ]
+}

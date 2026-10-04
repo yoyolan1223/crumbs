@@ -1,0 +1,255 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Crumbs 麵包屑 — 分心之後，找回你剛剛在做什麼</title>
+  <meta name="description" content="Crumbs 麵包屑是一隻住在 Mac 選單列的小麻雀，記下你切過的 App、視窗和網頁。連按兩下 ⌃，就幫你接回剛剛在做的事。免費、免登入，資料只存在你的 Mac。">
+  <meta property="og:title" content="Crumbs 麵包屑 — 分心之後，找回你剛剛在做什麼">
+  <meta property="og:description" content="住在 Mac 選單列的小麻雀。連按兩下 ⌃，接回剛剛在做的事。免費、免登入。">
+  <meta name="keywords" content="ADHD, 分心, 專注, 時間追蹤, Mac App, 生產力, 工作記憶, 任務切換, 免費, 開源">
+  <link rel="canonical" href="https://crumbs.01-crumbs.workers.dev/">
+  <link rel="alternate" hreflang="zh-Hant" href="https://crumbs.01-crumbs.workers.dev/">
+  <link rel="alternate" hreflang="en" href="https://crumbs.01-crumbs.workers.dev/en/">
+  <link rel="alternate" hreflang="x-default" href="https://crumbs.01-crumbs.workers.dev/en/">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://crumbs.01-crumbs.workers.dev/">
+  <meta property="og:site_name" content="Crumbs 麵包屑">
+  <meta property="og:locale" content="zh_TW">
+  <meta property="og:image" content="https://crumbs.01-crumbs.workers.dev/img/og.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:image" content="https://crumbs.01-crumbs.workers.dev/img/og.png">
+  <link rel="apple-touch-icon" href="img/appicon.png">
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"SoftwareApplication","name":"Crumbs 麵包屑","alternateName":"Crumbs","applicationCategory":"ProductivityApplication","operatingSystem":"macOS 14+","description":"住在 Mac 選單列的小麻雀，記下你切過的 App、視窗和網頁。連按兩下 ⌃，接回剛剛在做的事。","url":"https://crumbs.01-crumbs.workers.dev/","downloadUrl":"https://crumbs.01-crumbs.workers.dev/downloads/Crumbs-0.2.3.dmg","softwareVersion":"0.2.3","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"image":"https://crumbs.01-crumbs.workers.dev/img/appicon.png","sameAs":["https://github.com/yoyolan1223/crumbs"]}</script>
+  <link rel="icon" href="img/appicon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=LXGW+WenKai+TC:wght@400;700&family=Noto+Sans+TC:wght@400;500;700&display=swap">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="nav">
+    <a class="brand" href="#top"><img src="img/sparrow.png" alt="" width="34" height="34"><span>Crumbs <b>麵包屑</b></span></a>
+    <nav>
+      <a href="#features">功能</a>
+      <a href="#install">安裝</a>
+      <a href="#faq">常見問題</a>
+      <a href="https://github.com/yoyolan1223/crumbs">GitHub</a>
+    </nav>
+    <a class="lang" href="en/" hreflang="en" lang="en">EN</a>
+    <a class="btn small" data-track="下載鈕：頂部選單" href="downloads/Crumbs-0.2.3.dmg" download="Crumbs-麵包屑-0.2.3.dmg">下載</a>
+  </header>
+
+  <main id="top">
+    <!-- ── Hero ─────────────────────────────── -->
+    <section class="hero">
+      <div class="hero-copy">
+        <p class="eyebrow">給容易分心的大腦 🐦</p>
+        <h1>分心之後，<br>找回你<span class="nb">剛剛在做什麼。</span></h1>
+        <p class="lead">Crumbs 麵包屑是一隻住在 Mac 選單列的小麻雀。你在 App、視窗、網頁之間跳來跳去，它一路幫你撿起麵包屑；想不起來剛剛在幹嘛，<strong>連按兩下 <kbd>⌃</kbd></strong> 就幫你接回去。</p>
+        <div class="cta">
+          <a class="btn" data-track="下載鈕：首屏" href="downloads/Crumbs-0.2.3.dmg" download="Crumbs-麵包屑-0.2.3.dmg">
+            <svg viewBox="0 0 20 20" width="18" height="18" aria-hidden="true"><path d="M10 3v10m-4-4 4 4 4-4M4 16h12" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            免費下載 Mac 版
+          </a>
+          <span class="meta">0.2.3 · 1.0 MB · macOS 14+ · Apple 晶片</span>
+        </div>
+        <ul class="trust">
+          <li>✓ 通過 Apple 公證</li>
+          <li>✓ 不用註冊、不用登入</li>
+          <li>✓ 資料只存在你的 Mac</li>
+          <li>✓ <a href="https://github.com/yoyolan1223/crumbs">開源</a></li>
+        </ul>
+      </div>
+
+      <!-- Live demo: switch apps → double-tap ⌃ → the bar rises → jump back -->
+      <div class="stage" id="stage" aria-label="示意動畫：在 App 之間切換後，連按兩下 Control 叫出麵包屑，選回剛剛的文件">
+        <div class="menubar"><span></span><img src="img/sparrow.png" alt="" width="16" height="16"><span class="clock">14:32</span></div>
+        <div class="win" id="win">
+          <div class="win-bar"><i></i><i></i><i></i><span id="winTitle">期末報告.docx — Word</span></div>
+          <div class="win-body" id="winBody"></div>
+        </div>
+        <div class="keys" id="keys"><kbd>⌃</kbd><kbd>⌃</kbd></div>
+        <div class="bar" id="bar">
+          <div class="bar-head">
+            <img src="img/sparrow.png" alt="" width="34" height="34">
+            <div><small>剛剛你在</small><p><b>做簡報</b> · MindGym 募資簡報 v3</p></div>
+            <span class="dur">12 分</span>
+            <span class="open">打開主頁 ⤢</span>
+          </div>
+          <div class="said">你說過要：補完第 8 頁市場規模</div>
+          <ul class="places" id="places">
+            <li class="sel"><i class="ic ic-g"></i><b>做簡報</b> · MindGym 募資簡報 v3<span>Chrome</span></li>
+            <li><i class="ic ic-w"></i><b>寫文件</b> · 期末報告.docx<span>Word</span></li>
+            <li><i class="ic ic-l"></i><b>回訊息</b> · LINE<span>LINE</span></li>
+            <li><i class="ic ic-f"></i><b>做設計</b> · Pricing 頁 v2<span>Figma</span></li>
+          </ul>
+          <div class="note">✎ 在「LINE」要做什麼？</div>
+        </div>
+        <p class="caption" id="caption">在 App 之間切來切去…</p>
+      </div>
+    </section>
+
+    <!-- ── Three moments ────────────────────── -->
+    <section class="moments" id="features">
+      <h2>三個常見的時刻</h2>
+
+      <article class="moment">
+        <div class="m-copy">
+          <span class="num">1</span>
+          <h3>「欸，我剛剛在幹嘛？」</h3>
+          <p>在任何 App 裡<strong>連按兩下 <kbd>⌃</kbd> Control</strong>，螢幕下方浮出一條長條：剛剛你在哪裡、待了多久、你說過要做什麼。</p>
+          <ul class="ticks">
+            <li><kbd>↑</kbd><kbd>↓</kbd> 選、<kbd>Enter</kbd> 就切回那個 App、那份文件、那個分頁</li>
+            <li>直接打字，記下「這裡要做什麼」，下次回來會提醒你</li>
+            <li>多個 Chrome 設定檔也沒關係，全部記在一起</li>
+          </ul>
+        </div>
+        <div class="m-shot bar-shot">
+          <div class="bar static">
+            <div class="bar-head">
+              <img src="img/sparrow.png" alt="" width="34" height="34">
+              <div><small>剛剛你在</small><p><b>寫文件</b> · 期末報告.docx</p></div>
+              <span class="dur">18 分</span>
+              <span class="open">打開主頁 ⤢</span>
+            </div>
+            <div class="said">你說過要：把結論改短一點</div>
+            <ul class="places">
+              <li class="sel"><i class="ic ic-w"></i><b>寫文件</b> · 期末報告.docx<span>Word</span></li>
+              <li><i class="ic ic-g"></i><b>搜尋</b> · 「工作記憶 介入研究」<span>Chrome</span></li>
+              <li><i class="ic ic-l"></i><b>回訊息</b> · LINE<span>LINE</span></li>
+            </ul>
+            <div class="hint">↑↓ 選擇 · Enter 跳回去 · ⌫ 刪除 · 直接打字記筆記</div>
+          </div>
+          <p class="shot-cap">⌃⌃ 叫出來的浮動長條（示意）</p>
+        </div>
+      </article>
+
+      <article class="moment flip">
+        <div class="m-copy">
+          <span class="num">2</span>
+          <h3>「開了一堆東西，先做哪件？」</h3>
+          <p>點長條上的<strong>「打開主頁」</strong>，麵包屑把你今天碰過的東西整理成待辦，並告訴你<strong>為什麼</strong>先做這件：做到一半的、花最多時間的、一直回來看的排前面。</p>
+          <ul class="ticks">
+            <li>打勾、四格進度條、拖曳調整順序</li>
+            <li>關掉的視窗會自動離開清單，不會越積越多</li>
+            <li>腦中冒出一件事？直接丟進清單</li>
+          </ul>
+        </div>
+        <figure class="m-shot phone"><img src="img/panel-next.png" alt="主頁的「接下來」清單：現在先做 MindGym 募資簡報 v3，做到 50%" loading="lazy" width="560" height="960"><figcaption>主頁 ·「接下來」</figcaption></figure>
+      </article>
+
+      <article class="moment">
+        <div class="m-copy">
+          <span class="num">3</span>
+          <h3>「這週時間到底去哪了？」</h3>
+          <p><strong>一週回顧</strong>把時間分到你的專案裡：每天花在哪、跟上週比多還是少、哪幾件事最花時間。設幾個關鍵字，它就會自動歸類。</p>
+          <ul class="ticks">
+            <li>整台電腦的時間，不只瀏覽器</li>
+            <li>看得到「從分心中自己回來」了幾次</li>
+          </ul>
+        </div>
+        <figure class="m-shot wide"><img src="img/dashboard.png" alt="一週回顧：每天各專案花費時間的長條圖與專案列表" loading="lazy" width="1000" height="1180"><figcaption>一週回顧</figcaption></figure>
+      </article>
+
+      <article class="moment flip">
+        <div class="m-copy">
+          <span class="num">🍞</span>
+          <h3>分心不扣分，只會越來越滿</h3>
+          <p>完成事情、進度往前一格、<strong>從滑手機回到正事</strong>，都會掉一粒麵包屑進罐子。我們獎勵「回來」，而不是責備「分心」。</p>
+        </div>
+        <figure class="m-shot phone"><img src="img/panel-jar.png" alt="麵包屑罐：今天 9 / 24 粒，連續 4 天都有完成事情" loading="lazy" width="560" height="960"><figcaption>主頁 ·「罐子」</figcaption></figure>
+      </article>
+    </section>
+
+    <!-- ── Install ──────────────────────────── -->
+    <section class="install" id="install">
+      <h2>安裝只要一分鐘</h2>
+      <ol class="steps">
+        <li>
+          <div class="ill ill-drag" aria-hidden="true">
+            <div class="ill-app"><img src="img/appicon.png" alt="" width="64" height="64"><span>Crumbs 麵包屑</span></div>
+            <svg class="arrow" viewBox="0 0 80 24" width="80" height="24"><path d="M2 12h70m-10-8 10 8-10 8" stroke="currentColor" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <div class="ill-folder"><svg viewBox="0 0 64 52" width="64" height="52"><path d="M4 10a4 4 0 0 1 4-4h16l6 6h26a4 4 0 0 1 4 4v28a4 4 0 0 1-4 4H8a4 4 0 0 1-4-4z" fill="#5AA7F0"/><path d="M4 18h56v26a4 4 0 0 1-4 4H8a4 4 0 0 1-4-4z" fill="#7BBDF7"/><path d="M26 26l6 10 6-10" stroke="#fff" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg><span>應用程式</span></div>
+          </div>
+          <h3><span>1</span>拖進「應用程式」</h3>
+          <p>打開下載的 <code>.dmg</code>，把小麻雀拖到旁邊的「應用程式」資料夾。</p>
+        </li>
+        <li>
+          <div class="ill ill-menubar" aria-hidden="true">
+            <div class="mb"><span>Finder</span><span class="sp"></span><img src="img/sparrow.png" alt="" width="18" height="18" class="glow"><span>📶</span><span>14:32</span></div>
+            <div class="mb-menu">
+              <p class="dim">剛剛你在：做簡報 · 募資簡報</p>
+              <hr><p>打開主頁</p><p>📊 一週回顧</p><p>叫出方式 ▸</p><hr><p>開機時自動啟動 ✓</p>
+            </div>
+          </div>
+          <h3><span>2</span>打開它</h3>
+          <p>到「應用程式」打開 <b>Crumbs 麵包屑</b>，右上角選單列會出現一隻小麻雀。記得把安裝磁碟退出（Finder 側邊欄按 ⏏）。</p>
+        </li>
+        <li>
+          <div class="ill ill-ax" aria-hidden="true">
+            <div class="set-head">隱私權與安全性 › <b>輔助使用</b></div>
+            <div class="set-row"><span class="set-ic">🔤</span>其他 App<span class="tog"></span></div>
+            <div class="set-row hl"><img src="img/appicon.png" alt="" width="22" height="22">Crumbs 麵包屑<span class="tog on"></span></div>
+            <div class="set-row"><span class="set-ic">⌨️</span>其他 App<span class="tog"></span></div>
+          </div>
+          <h3><span>3</span>開兩個授權</h3>
+          <p><b>輔助使用</b>：系統設定 → 隱私權與安全性 → 輔助使用 → 打開「Crumbs 麵包屑」。<br><b>控制瀏覽器</b>：第一次切到 Chrome／Safari 時會問，按「好」。</p>
+        </li>
+      </ol>
+
+      <div class="why">
+        <h3>為什麼需要這兩個授權？</h3>
+        <div class="why-grid">
+          <div><b>輔助使用</b><p>才看得到視窗標題（例如 Word 開的是哪份檔案）、才能用連按兩下 ⌃ 叫出來、才能幫你切回那個視窗。沒開也能用，但只會記到 App 名稱。</p></div>
+          <div><b>控制瀏覽器</b><p>才知道你在哪個網頁、也才能幫你切回那個分頁。只會讀分頁的網址和標題，不讀網頁內容。</p></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── Shortcuts ────────────────────────── -->
+    <section class="keys-table">
+      <h2>怎麼用</h2>
+      <table>
+        <tr><th>我想要</th><th>這樣做</th></tr>
+        <tr><td>「我剛剛在幹嘛？」</td><td>任何地方<b>連按兩下 <kbd>⌃</kbd></b>（或 <kbd>⌃</kbd><kbd>⌥</kbd><kbd>Z</kbd>）</td></tr>
+        <tr><td>跳回剛剛的地方</td><td><kbd>↑</kbd><kbd>↓</kbd> 選、<kbd>Enter</kbd></td></tr>
+        <tr><td>記下這裡要做什麼</td><td>直接打字、<kbd>Enter</kbd></td></tr>
+        <tr><td>刪掉一個足跡</td><td>選到它按 <kbd>⌫</kbd>，或點右邊的 ✕</td></tr>
+        <tr><td>看待辦、足跡、罐子、一週回顧</td><td>長條右上角「打開主頁」、連點兩下長條，或 <kbd>⌘</kbd><kbd>O</kbd></td></tr>
+        <tr><td>換叫出方式、暫停、開機自動啟動</td><td>點選單列的小麻雀</td></tr>
+      </table>
+      <p class="tip">跟 Claude 等 App 的「連按兩下 ⌥」衝突？在選單列小麻雀 →「叫出方式」改成右 ⌥ 或右 ⌘。</p>
+    </section>
+
+    <!-- ── FAQ ──────────────────────────────── -->
+    <section class="faq" id="faq">
+      <h2>常見問題</h2>
+      <details open><summary>我的資料會被上傳嗎？</summary><p>不會。所有紀錄只存在你自己的 Mac（<code>~/Library/Application Support/Crumbs</code>），不用帳號、不連任何伺服器。它只記 App 名稱、視窗標題、網頁網址和停留時間，不讀內容、不截圖、不記錄你打的字。</p></details>
+      <details><summary>要錢嗎？</summary><p>現在完全免費。</p></details>
+      <details><summary>是開源的嗎？</summary><p>是的。程式碼全部公開在 <a href="https://github.com/yoyolan1223/crumbs">GitHub</a>（MIT 授權），你可以自己檢查它到底記了什麼、沒傳任何東西出去。歡迎開 issue 回報問題或提出想法，覺得好用的話幫它按顆 ⭐。</p></details>
+      <details><summary>我的 Mac 是 Intel 晶片，可以用嗎？</summary><p>目前只支援 Apple 晶片（M1／M2／M3／M4）。Intel 版本在規劃中。</p></details>
+      <details><summary>為什麼不在 Mac App Store 上架？</summary><p>App Store 的 App 不能讀其他 App 的視窗、也不能幫你切換分頁，而這正是麵包屑最重要的功能。所以我們用 Apple 的開發者簽名＋公證直接提供下載，打開時不會有安全性警告。</p></details>
+      <details><summary>離開電腦也會一直計時嗎？</summary><p>不會。5 分鐘沒動、鎖定螢幕或睡眠時會自動停止計時。</p></details>
+      <details><summary>怎麼移除？</summary><p>點選單列小麻雀 →「結束」，再把「應用程式」裡的 Crumbs 麵包屑丟到垃圾桶。想連資料一起刪，把 <code>~/Library/Application Support/Crumbs</code> 資料夾也刪掉。</p></details>
+      <details><summary>只在瀏覽器工作，有 Chrome 版嗎？</summary><p>有 Chrome 插件版（網頁右側的小麻雀＋側欄），正在準備上架 Chrome 線上應用程式商店。</p></details>
+    </section>
+
+    <section class="final">
+      <img src="img/sparrow.png" alt="" width="72" height="72">
+      <h2>讓小麻雀跟著你</h2>
+      <a class="btn" data-track="下載鈕：頁尾" href="downloads/Crumbs-0.2.3.dmg" download="Crumbs-麵包屑-0.2.3.dmg">免費下載 Mac 版</a>
+      <p class="meta">0.2.3 · macOS 14+ · Apple 晶片</p>
+    </section>
+  </main>
+
+  <footer>
+    <p>Crumbs 麵包屑 · made with 🍞 · <a href="privacy.html">隱私權政策</a> · <a href="https://github.com/yoyolan1223/crumbs">GitHub</a> · <a href="en/" hreflang="en" lang="en">English</a> · <a href="mailto:yolanda921223@gmail.com">聯絡我們</a></p>
+  </footer>
+
+  <script src="demo.js"></script>
+  <script src="track.js" defer></script>
+</body>
+</html>
