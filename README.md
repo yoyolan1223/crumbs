@@ -40,14 +40,14 @@ Crumbs quietly leaves a trail of breadcrumbs as you work, so you never have to r
 
 **Private by design:** no account, no server. Everything lives in `~/Library/Application Support/Crumbs` on your Mac. Crumbs records app names, window titles, tab URLs/titles and time — never page content, screenshots or keystrokes.
 
-> **Note:** the app UI is currently in Traditional Chinese. An English UI is planned — PRs and issues welcome!
+**English & 中文:** the app follows your Mac's language, and you can switch anytime (menu bar sparrow → 🌐 Language).
 
 <p align="center">
-  <img src="site/img/panel-next.png" width="260" alt="Up next list">
-  <img src="site/img/panel-jar.png" width="260" alt="Crumb jar">
+  <img src="site/img/panel-next-en.png" width="260" alt="Up next list">
+  <img src="site/img/panel-jar-en.png" width="260" alt="Crumb jar">
 </p>
 <p align="center">
-  <img src="site/img/dashboard.png" width="540" alt="Weekly review dashboard">
+  <img src="site/img/dashboard-en.png" width="540" alt="Weekly review dashboard">
 </p>
 
 ## Install
@@ -93,7 +93,7 @@ dev/               mock Chrome API + preview pages for working on the UI in a br
 
 Issues and pull requests are welcome — especially:
 
-- 🌏 English UI / i18n
+- 🌏 more languages (strings live next to each other as `L('中文', 'English')`)
 - 💻 Intel Mac build
 - 🧭 better “what are you doing” rules for apps and sites you use (`RULES` in `shared.js`, `mac/Sources/Describe.swift`)
 
@@ -111,6 +111,7 @@ If Crumbs helps you, a ⭐ helps other people find it.
 
 - **免費下載**：<https://crumbs.01-crumbs.workers.dev/>（Apple 公證，macOS 14+、Apple 晶片）
 - **不用註冊、不用登入**，資料只存在你的 Mac，不讀內容、不截圖、不記錄打字
+- **中英文介面**：跟著系統語言，也可以從選單列小麻雀 →「🌐 語言」切換
 - **主要功能**：⌃⌃ 叫出「剛剛你在…」並一鍵跳回、替每個地方記筆記、「接下來」待辦排序、一週回顧（每天花在哪）、獎勵「回來」的麵包屑罐
 - 自己編譯：`cd mac && ./build.sh`
 - Chrome 擴充功能版說明：[README-extension.zh-TW.md](README-extension.zh-TW.md)

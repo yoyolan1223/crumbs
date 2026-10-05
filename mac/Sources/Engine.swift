@@ -21,7 +21,20 @@ final class Engine: NSObject, WKScriptMessageHandler, WKUIDelegate, WKNavigation
     private var dashWindow: NSWindow?
     private var ready = false
     private var pending: [String] = []
-    private var latestState = "{}" { didSet { parseLater() } }
+    private var latestState = "{}" { didSet { parseLater(); syncLang() } }
+
+    /// The main page's language picker → menu bar + overlay.
+    private func syncLang() {
+        guard let data = latestState.data(using: .utf8),
+              let obj = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+              let l = (obj["settings"] as? [String: Any])?["lang"] as? String else { return }
+        if Thread.isMainThread { Lang.set(l, fromWeb: true) } else { DispatchQueue.main.async { Lang.set(l, fromWeb: true) } }
+    }
+
+    /// Menu bar picker → main page.
+    func setLang(_ p: String) {
+        call("__crumbs.reduce(\(Self.json(["type": "settings", "patch": ["lang": p]])))")
+    }
 
     /// 「等一下要做」: hand-written to-dos (optionally a link you haven't opened yet), newest first.
     struct Later: Identifiable { let id: String; let title: String; let url: String? }
@@ -82,7 +95,7 @@ final class Engine: NSObject, WKScriptMessageHandler, WKUIDelegate, WKNavigation
         let cfg = WKWebViewConfiguration()
         let uc = WKUserContentController()
         uc.add(WeakHandler(self), name: "crumbs")
-        uc.addUserScript(WKUserScript(source: "window.__CRUMBS_INITIAL__ = \(latestState);",
+        uc.addUserScript(WKUserScript(source: "window.__CRUMBS_INITIAL__ = \(latestState); window.__CRUMBS_SYSLANG__ = \"\(Lang.system)\";",
                                       injectionTime: .atDocumentStart, forMainFrameOnly: true))
         cfg.userContentController = uc
         let wv = WKWebView(frame: NSRect(origin: .zero, size: size), configuration: cfg)
@@ -152,7 +165,7 @@ final class Engine: NSObject, WKScriptMessageHandler, WKUIDelegate, WKNavigation
             let w = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 440, height: 780),
                              styleMask: [.titled, .closable, .miniaturizable, .resizable, .fullSizeContentView],
                              backing: .buffered, defer: false)
-            w.title = "麵包屑"
+            w.title = L("麵包屑", "Crumbs")
             w.titlebarAppearsTransparent = true
             w.titleVisibility = .hidden
             w.isReleasedWhenClosed = false
@@ -171,7 +184,7 @@ final class Engine: NSObject, WKScriptMessageHandler, WKUIDelegate, WKNavigation
             let w = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 920, height: 860),
                              styleMask: [.titled, .closable, .miniaturizable, .resizable, .fullSizeContentView],
                              backing: .buffered, defer: false)
-            w.title = "一週回顧"
+            w.title = L("一週回顧", "Weekly review")
             w.titlebarAppearsTransparent = true
             w.titleVisibility = .hidden
             w.isReleasedWhenClosed = false
@@ -208,13 +221,13 @@ final class Engine: NSObject, WKScriptMessageHandler, WKUIDelegate, WKNavigation
     func webView(_ webView: WKWebView, runJavaScriptConfirmPanelWithMessage message: String,
                  initiatedByFrame frame: WKFrameInfo, completionHandler: @escaping (Bool) -> Void) {
         let a = NSAlert(); a.messageText = message
-        a.addButton(withTitle: "好"); a.addButton(withTitle: "取消")
+        a.addButton(withTitle: L("好", "OK")); a.addButton(withTitle: L("取消", "Cancel"))
         completionHandler(a.runModal() == .alertFirstButtonReturn)
     }
     func webView(_ webView: WKWebView, runJavaScriptTextInputPanelWithPrompt prompt: String, defaultText: String?,
                  initiatedByFrame frame: WKFrameInfo, completionHandler: @escaping (String?) -> Void) {
         let a = NSAlert(); a.messageText = prompt
-        a.addButton(withTitle: "好"); a.addButton(withTitle: "取消")
+        a.addButton(withTitle: L("好", "OK")); a.addButton(withTitle: L("取消", "Cancel"))
         let field = NSTextField(frame: NSRect(x: 0, y: 0, width: 260, height: 24))
         field.stringValue = defaultText ?? ""
         a.accessoryView = field

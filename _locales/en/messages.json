@@ -1,0 +1,7 @@
+{
+  "name": { "message": "Crumbs — what was I doing?" },
+  "description": { "message": "A little sparrow for distracted brains: remembers the tabs you open and what you did on each, and lines up what to do next." },
+  "action_title": { "message": "Open Crumbs" },
+  "cmd_open": { "message": "Open the Crumbs side panel" },
+  "cmd_trail": { "message": "What was I doing? (show the trail on the page)" }
+}

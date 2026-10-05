@@ -12,7 +12,7 @@ mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
 
 swiftc -swift-version 5 -O -target arm64-apple-macos14.0 Sources/*.swift -o "$APP/Contents/MacOS/Crumbs"
 cp Info.plist "$APP/Contents/Info.plist"
-cp Resources/* "$APP/Contents/Resources/"
+cp -R Resources/ "$APP/Contents/Resources/"
 # Main page = the Chrome extension's UI + a small bridge (web/).
 mkdir -p "$APP/Contents/Resources/web"
 cp web/* "$APP/Contents/Resources/web/"

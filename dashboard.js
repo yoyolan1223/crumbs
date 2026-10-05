@@ -2,6 +2,7 @@
 (() => {
   const C = self.Crumbs;
   const e = C.esc;
+  const L = C.L, tr = C.tr;
   const root = document.getElementById('dash');
   const tip = document.getElementById('tip');
   const send = (msg) => chrome.runtime.sendMessage(msg);
@@ -18,14 +19,14 @@
     const p = st.projects.find((x) => x.id === pid);
     return p ? C.PALETTE[dark() ? 'dark' : 'light'][p.color] : 'var(--none)';
   };
-  const nameOf = (pid) => (pid === 'none' ? '未分類' : (st.projects.find((x) => x.id === pid) || {}).name || '已刪除的專案');
-  const titleOf = (key) => (st.meta[key] || st.tasks[key] || {}).title || key;
+  const nameOf = (pid) => (pid === 'none' ? L('未分類', 'Unsorted') : (st.projects.find((x) => x.id === pid) || {}).name || L('已刪除的專案', 'Deleted project'));
+  const titleOf = (key) => tr((st.meta[key] || st.tasks[key] || {}).title || key);
 
   function hm(ms) {
     const m = Math.round(ms / 60e3);
-    if (m < 60) return `${m} 分`;
+    if (m < 60) return m + L(' 分', ' min');
     const h = Math.floor(m / 60), r = m % 60;
-    return r ? `${h} 小時 ${r} 分` : `${h} 小時`;
+    return L(r ? `${h} 小時 ${r} 分` : `${h} 小時`, r ? `${h} hr ${r} min` : `${h} hr`);
   }
   const hShort = (ms) => (ms >= 36e5 ? (ms / 36e5).toFixed(1).replace(/\.0$/, '') + 'h' : Math.round(ms / 60e3) + 'm');
 
@@ -45,6 +46,8 @@
   const FOCUS_KINDS = ['create', 'work', 'todo', 'comm', 'learn', 'search'];
 
   function render() {
+    document.documentElement.lang = C.lang() === 'en' ? 'en' : 'zh-Hant';
+    document.title = L('一週回顧 — 麵包屑', 'Weekly review — Crumbs');
     const now = Date.now();
     const w = C.weekStats(st, now, offset);
     const prev = C.weekStats(st, now, offset + 1);
@@ -67,76 +70,79 @@
     const unassignedShare = w.total ? (w.projects.none?.ms || 0) / w.total : 0;
 
     let say;
-    if (!w.total) say = offset ? '那一週沒有足跡。' : '這週還沒有足跡。開始工作後，這裡會長出你的一週。';
-    else if (!st.projects.length) say = `這週追蹤到 ${hm(w.total)}。幫它們分個專案吧，下面的「還沒分類」點一下就能歸類。`;
+    if (!w.total) say = offset ? L('那一週沒有足跡。', 'No crumbs that week.') : L('這週還沒有足跡。開始工作後，這裡會長出你的一週。', 'No crumbs this week yet. Start working and your week will grow here.');
+    else if (!st.projects.length) say = L(`這週追蹤到 ${hm(w.total)}。幫它們分個專案吧，下面的「還沒分類」點一下就能歸類。`, `${hm(w.total)} tracked this week. Sort it into projects — add one below.`);
     else if (top) {
       const before = prev.projects[top.id]?.ms || 0;
       const diff = top.ms - before;
-      say = `這週你最多時間花在「${nameOf(top.id)}」，${hm(top.ms)}` +
+      say = L(`這週你最多時間花在「${nameOf(top.id)}」，${hm(top.ms)}` +
         (before ? `，${diff >= 0 ? '比上週多' : '比上週少'} ${hm(Math.abs(diff))}。` : '。') +
-        (comebacks ? ` 還有 ${comebacks} 次從分心中自己回來，很棒。` : '');
-    } else say = `這週追蹤到 ${hm(w.total)}，大部分還沒分類。`;
+        (comebacks ? ` 還有 ${comebacks} 次從分心中自己回來，很棒。` : ''),
+        `Most of your week went to “${nameOf(top.id)}”: ${hm(top.ms)}` +
+        (before ? `, ${hm(Math.abs(diff))} ${diff >= 0 ? 'more' : 'less'} than last week.` : '.') +
+        (comebacks ? ` And you pulled yourself back from distractions ${comebacks} times — great.` : ''));
+    } else say = L(`這週追蹤到 ${hm(w.total)}，大部分還沒分類。`, `${hm(w.total)} tracked this week, mostly unsorted.`);
 
     root.innerHTML = `
       <header class="d-top">
         <div class="d-brand">${C.sparrow(w.total ? 'happy' : 'sleepy', 56)}
-          <div><h1>一週回顧</h1><p class="d-range">${range}${offset ? '' : '・這週'}</p></div></div>
-        <div class="d-nav" role="group" aria-label="切換週">
-          <button data-act="older" aria-label="上一週">‹ 上週</button>
-          <button data-act="newer" ${offset === 0 ? 'disabled' : ''} aria-label="下一週">下週 ›</button>
+          <div><h1>${L('一週回顧', 'Weekly review')}</h1><p class="d-range">${range}${offset ? '' : L('・這週', ' · this week')}</p></div></div>
+        <div class="d-nav" role="group" aria-label="${L('切換週', 'Switch week')}">
+          <button data-act="older" aria-label="${L('上一週', 'Previous week')}">‹ ${L('上週', 'Prev')}</button>
+          <button data-act="newer" ${offset === 0 ? 'disabled' : ''} aria-label="${L('下一週', 'Next week')}">${L('下週', 'Next')} ›</button>
         </div>
       </header>
       <p class="bubble d-say">${e(say)}</p>
 
       <section class="tiles">
-        ${tile('總共', hm(w.total), prev.total ? delta(w.total, prev.total) : '')}
-        ${tile('每天平均', hm(w.total / activeDays), `${activeDays} 天有紀錄`)}
-        ${tile('花在正事上', w.total ? Math.round((focus / w.total) * 100) + '%' : '—', '創作、工作、溝通、學習、查資料')}
-        ${tile('從分心回來', comebacks + ' 次', done ? `完成 ${done} 件事` : '分心不扣分，回來才算數')}
+        ${tile(L('總共', 'Total'), hm(w.total), prev.total ? delta(w.total, prev.total) : '')}
+        ${tile(L('每天平均', 'Daily average'), hm(w.total / activeDays), L(`${activeDays} 天有紀錄`, `${activeDays} days tracked`))}
+        ${tile(L('花在正事上', 'On real work'), w.total ? Math.round((focus / w.total) * 100) + '%' : '—', L('創作、工作、溝通、學習、查資料', 'Create, work, talk, learn, search'))}
+        ${tile(L('從分心回來', 'Came back'), comebacks + L(' 次', comebacks === 1 ? ' time' : ' times'), done ? L(`完成 ${done} 件事`, `${done} things done`) : L('分心不扣分，回來才算數', 'Drifting is free — coming back counts'))}
       </section>
 
       <section class="card">
-        <div class="card-h"><h2>每天花在哪裡</h2>
-          <div class="seg-by" role="group" aria-label="依什麼分顏色">
-            ${[['site', 'App／網站'], ['project', '專案'], ['kind', '類型']].map(([v, l]) =>
+        <div class="card-h"><h2>${L('每天花在哪裡', 'Where each day went')}</h2>
+          <div class="seg-by" role="group" aria-label="${L('依什麼分顏色', 'Color by')}">
+            ${[['site', L('App／網站', 'App / site')], ['project', L('專案', 'Project')], ['kind', L('類型', 'Kind')]].map(([v, l]) =>
               `<button data-act="by" data-v="${v}" class="${groupBy === v ? 'on' : ''}">${l}</button>`).join('')}
           </div>
         </div>
         ${legend(series.order)}
         ${barChart(w.days, series, day)}
-        <p class="chart-hint">點任何一天，看那天花在哪裡 ↓</p>
+        <p class="chart-hint">${L('點任何一天，看那天花在哪裡 ↓', 'Click any day to see where it went ↓')}</p>
       </section>
 
       ${dayDetail(w.days[day], series)}
 
       <section class="card">
-        <div class="card-h"><h2>專案</h2><span class="hint">關鍵字會自動把分頁歸進專案，也可以在側欄手動指定</span></div>
-        <ol class="plist">${projects.length ? projects.map((p) => projectRow(p, prev, w.total)).join('') : '<li class="empty-row">這週還沒有資料</li>'}</ol>
+        <div class="card-h"><h2>${L('專案', 'Projects')}</h2><span class="hint">${L('關鍵字會自動把分頁歸進專案，也可以在側欄手動指定', 'Keywords file pages into projects automatically; you can also assign them by hand')}</span></div>
+        <ol class="plist">${projects.length ? projects.map((p) => projectRow(p, prev, w.total)).join('') : `<li class="empty-row">${L('這週還沒有資料', 'No data this week yet')}</li>`}</ol>
         ${addProjectForm()}
       </section>
 
       ${unassigned(w)}
 
       <section class="card">
-        <div class="card-h"><h2>做事的類型</h2><span class="hint">點一列看它包含什麼、這週算進了哪些 App 和網站</span></div>
+        <div class="card-h"><h2>${L('做事的類型', 'Kinds of work')}</h2><span class="hint">${L('點一列看它包含什麼、這週算進了哪些 App 和網站', 'Click a row to see what it includes and which apps and sites counted this week')}</span></div>
         ${kindBars(w.kinds, w.total, w)}
       </section>
 
-      <p class="d-foot">資料只存在這台電腦的瀏覽器裡，保留 60 天。${unassignedShare > .5 && st.projects.length ? '・還沒分類的時間超過一半，加幾個關鍵字會更準。' : ''}</p>`;
+      <p class="d-foot">${L('資料只存在這台電腦裡，保留 60 天。', 'Data stays on this computer and is kept for 60 days.')}${unassignedShare > .5 && st.projects.length ? L('・還沒分類的時間超過一半，加幾個關鍵字會更準。', ' · Over half your time is unsorted — a few keywords will help.') : ''}</p>`;
   }
 
   const tile = (label, value, sub) => `<div class="tile"><span>${label}</span><b>${value}</b><small>${sub}</small></div>`;
   function delta(a, b) {
     const d = a - b;
-    if (Math.abs(d) < 5 * 60e3) return '跟上週差不多';
-    return `${d > 0 ? '比上週多' : '比上週少'} ${hm(Math.abs(d))}`;
+    if (Math.abs(d) < 5 * 60e3) return L('跟上週差不多', 'About the same as last week');
+    return L(`${d > 0 ? '比上週多' : '比上週少'} ${hm(Math.abs(d))}`, `${hm(Math.abs(d))} ${d > 0 ? 'more' : 'less'} than last week`);
   }
 
   const metaOf = (key) => st.meta[key] || st.tasks[key] || {};
   const siteOf = (key) => metaOf(key).site || key.replace(/^app:([^|]*)\|.*$/, '$1') || '其他';
   const kindOf = (key) => metaOf(key).kind || 'browse';
   const kindName = (k) => (C.KIND[k] || C.KIND.browse).label;
-  const OTHER = { id: '__other', name: '其他', color: 'var(--none)' };
+  const OTHER = { id: '__other', get name() { return L('其他', 'Other'); }, color: 'var(--none)' };
 
   // The coloured groups for the chart. Top 7 by time get the palette (in order), the rest fold into 其他.
   function buildSeries(w, projects) {
@@ -150,7 +156,7 @@
     const ranked = Object.entries(totals).sort((a, b) => b[1] - a[1]).map(([id]) => id);
     const pal = C.PALETTE[dark() ? 'dark' : 'light'];
     const top = ranked.slice(0, 7);
-    const order = top.map((id, i) => ({ id, name: groupBy === 'kind' ? kindName(id) : id, color: pal[i] }));
+    const order = top.map((id, i) => ({ id, name: groupBy === 'kind' ? kindName(id) : tr(id), color: pal[i] }));
     if (ranked.length > 7) order.push(OTHER);
     const keep = new Set(top);
     return {
@@ -201,16 +207,16 @@
         const path = r
           ? `M${x},${y1 + h}V${y1 + r}Q${x},${y1} ${x + r},${y1}H${x + barW - r}Q${x + barW},${y1} ${x + barW},${y1 + r}V${y1 + h}Z`
           : `M${x},${y1}H${x + barW}V${y1 + h}H${x}Z`;
-        bars += `<path d="${path}" fill="${s.color}" class="seg" data-tip="${e(`${d.label}（${d.md}）· ${s.name} · ${hm(ms)}`)}"/>`;
+        bars += `<path d="${path}" fill="${s.color}" class="seg" data-tip="${e(`${d.label} (${d.md}) · ${s.name} · ${hm(ms)}`)}"/>`;
         acc += ms;
       });
       if (d.total) bars += `<text x="${x + barW / 2}" y="${y(d.total) - 6}" class="tot" text-anchor="middle">${hShort(d.total)}</text>`;
-      bars += `<text x="${x + barW / 2}" y="${H - 8}" class="ax ${d.label === '今天' ? 'today' : ''} ${i === sel ? 'sel' : ''}" text-anchor="middle">${d.label}</text>`;
+      bars += `<text x="${x + barW / 2}" y="${H - 8}" class="ax ${i === 6 && offset === 0 ? 'today' : ''} ${i === sel ? 'sel' : ''}" text-anchor="middle">${d.label}</text>`;
       // A generous hit target for the whole day: hover for the total, click to open the day.
       bars += `<rect x="${padL + colW * i}" y="${padT - 14}" width="${colW}" height="${H - padT - padB + 34}" fill="transparent" class="hit"
-        data-act="day" data-i="${i}" data-tip="${e(`${d.label}（${d.md}）· 共 ${hm(d.total)}・點開看細節`)}"/>`;
+        data-act="day" data-i="${i}" data-tip="${e(L(`${d.label}（${d.md}）· 共 ${hm(d.total)}・點開看細節`, `${d.label} (${d.md}) · ${hm(d.total)} total · click for details`))}"/>`;
     });
-    return `<div class="chart"><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="每天花費時間的堆疊長條圖">${grid}${bars}</svg></div>`;
+    return `<div class="chart"><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${L('每天花費時間的堆疊長條圖', 'Stacked bar chart of time spent each day')}">${grid}${bars}</svg></div>`;
   }
 
   // 「那一天花在哪裡」: by app / site, each with the actual documents / pages.
@@ -228,22 +234,22 @@
     const max = rows[0].ms;
     // Same colour as the chart when it's split by app / site.
     const colorFor = (name) => (groupBy === 'site' && (series.order.find((s) => s.id === name) || OTHER).color) || 'var(--crumb)';
-    const W = '日一二三四五六';
+    const W = L('日一二三四五六', ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']);
     return `<section class="card day">
-      <div class="card-h"><h2>${d.md}（${W[d.date.getDay()]}）花在哪裡</h2><span class="hint">共 ${hm(d.total)}・點一列看做了哪些事</span></div>
+      <div class="card-h"><h2>${L(`${d.md}（${W[d.date.getDay()]}）花在哪裡`, `Where ${W[d.date.getDay()]} ${d.md} went`)}</h2><span class="hint">${L(`共 ${hm(d.total)}・點一列看做了哪些事`, `${hm(d.total)} total · click a row to see what you did`)}</span></div>
       <ol class="dlist">${rows.map((r) => {
         const topKind = Object.entries(r.kinds).sort((a, b) => b[1] - a[1])[0][0];
         const items = r.items.sort((a, b) => b[1] - a[1]);
-        const single = items.length === 1 && titleOf(items[0][0]) === r.name;
+        const single = items.length === 1 && titleOf(items[0][0]) === tr(r.name);
         return `<li><details>
           <summary>
-            <span class="dn"><i class="dot" style="background:${colorFor(r.name)}"></i>${e(r.name)}<em>${kindName(topKind)}</em></span>
+            <span class="dn"><i class="dot" style="background:${colorFor(r.name)}"></i>${e(tr(r.name))}<em>${kindName(topKind)}</em></span>
             <span class="db2"><i style="width:${(r.ms / max) * 100}%;background:${colorFor(r.name)}"></i></span>
             <span class="dv">${hm(r.ms)}</span>
           </summary>
           ${single ? '' : `<ul class="ditems">${items.filter(([, ms]) => ms >= 30e3).slice(0, 12).map(([k, ms]) =>
             `<li><span>${e(titleOf(k))}</span><em>${hm(ms)}</em></li>`).join('')}
-            ${items.length > 12 ? `<li class="more">還有 ${items.length - 12} 項</li>` : ''}</ul>`}
+            ${items.length > 12 ? `<li class="more">${L(`還有 ${items.length - 12} 項`, `${items.length - 12} more`)}</li>` : ''}</ul>`}
         </details></li>`;
       }).join('')}</ol>
     </section>`;
@@ -257,10 +263,10 @@
     if (editing === p.id && proj) {
       return `<li class="prow editing">
         <form class="pedit" data-act="saveProject" data-id="${e(p.id)}">
-          <input name="name" value="${e(proj.name)}" aria-label="專案名稱" maxlength="30">
-          <input name="rules" value="${e(proj.rules.join(', '))}" placeholder="關鍵字，用逗號分隔（網址、網站、標題都會比對）" aria-label="關鍵字">
-          <div class="row"><button type="button" class="link danger" data-act="deleteProject" data-id="${e(p.id)}">刪除專案</button>
-            <span class="sp"></span><button type="button" class="btn ghost" data-act="cancelEdit">取消</button><button class="btn primary">儲存</button></div>
+          <input name="name" value="${e(proj.name)}" aria-label="${L('專案名稱', 'Project name')}" maxlength="30">
+          <input name="rules" value="${e(proj.rules.join(', '))}" placeholder="${L('關鍵字，用逗號分隔（網址、網站、標題都會比對）', 'Keywords, comma-separated (matched against URL, site and title)')}" aria-label="${L('關鍵字', 'Keywords')}">
+          <div class="row"><button type="button" class="link danger" data-act="deleteProject" data-id="${e(p.id)}">${L('刪除專案', 'Delete project')}</button>
+            <span class="sp"></span><button type="button" class="btn ghost" data-act="cancelEdit">${L('取消', 'Cancel')}</button><button class="btn primary">${L('儲存', 'Save')}</button></div>
         </form></li>`;
     }
     return `<li class="prow">
@@ -268,18 +274,18 @@
       <div class="pmain">
         <div class="ptop"><b>${e(nameOf(p.id))}</b><span class="pms">${hm(p.ms)}</span><span class="ppct">${pct}%</span></div>
         <div class="pbar"><i style="width:${pct}%;background:${colorOf(p.id)}"></i></div>
-        <div class="pmeta">${before ? delta(p.ms, before) : '上週沒有紀錄'}${proj && proj.rules.length ? `・關鍵字：${e(proj.rules.join('、'))}` : ''}</div>
+        <div class="pmeta">${before ? delta(p.ms, before) : L('上週沒有紀錄', 'Nothing last week')}${proj && proj.rules.length ? `${L('・關鍵字：', ' · Keywords: ')}${e(proj.rules.join(L('、', ', ')))}` : ''}</div>
         <ul class="ptasks">${tasks.map(([k, ms]) => `<li><span>${e(titleOf(k))}</span><em>${hm(ms)}</em></li>`).join('')}</ul>
       </div>
-      ${proj ? `<button class="icon" data-act="editProject" data-id="${e(p.id)}" aria-label="編輯專案" title="編輯">✎</button>` : ''}
+      ${proj ? `<button class="icon" data-act="editProject" data-id="${e(p.id)}" aria-label="${L('編輯專案', 'Edit project')}" title="${L('編輯', 'Edit')}">✎</button>` : ''}
     </li>`;
   }
 
   function addProjectForm() {
     return `<form class="padd" data-act="addProject">
-      <input name="name" placeholder="新專案名稱，例如：MindGym 募資" maxlength="30" aria-label="新專案名稱">
-      <input name="rules" placeholder="關鍵字：募資, deck, pitch" aria-label="關鍵字">
-      <button class="btn primary">＋ 新增</button>
+      <input name="name" placeholder="${L('新專案名稱，例如：MindGym 募資', 'New project, e.g. Fundraising')}" maxlength="30" aria-label="${L('新專案名稱', 'New project name')}">
+      <input name="rules" placeholder="${L('關鍵字：募資, deck, pitch', 'Keywords: deck, pitch, investor')}" aria-label="${L('關鍵字', 'Keywords')}">
+      <button class="btn primary">${L('＋ 新增', '＋ Add')}</button>
     </form>`;
   }
 
@@ -288,10 +294,10 @@
     if (!none || !st.projects.length) return '';
     const rows = Object.entries(none.tasks).filter(([, ms]) => ms >= 60e3).sort((a, b) => b[1] - a[1]).slice(0, 8);
     return `<section class="card">
-      <div class="card-h"><h2>還沒分類</h2><span class="hint">點一下選專案，以後同一個網頁都會記得</span></div>
+      <div class="card-h"><h2>${L('還沒分類', 'Unsorted')}</h2><span class="hint">${L('點一下選專案，以後同一個網頁都會記得', 'Pick a project once and the same page is remembered')}</span></div>
       <ul class="ulist">${rows.map(([k, ms]) => `<li>
-        <span class="ut">${e(titleOf(k))}<small>${e((st.meta[k] || {}).site || '')}</small></span><em>${hm(ms)}</em>
-        <select data-act="assign" data-key="${e(k)}" aria-label="歸到專案"><option value="">歸到…</option>
+        <span class="ut">${e(titleOf(k))}<small>${e(tr((st.meta[k] || {}).site || ''))}</small></span><em>${hm(ms)}</em>
+        <select data-act="assign" data-key="${e(k)}" aria-label="${L('歸到專案', 'Assign to project')}"><option value="">${L('歸到…', 'Move to…')}</option>
           ${st.projects.map((p) => `<option value="${e(p.id)}">${e(p.name)}</option>`).join('')}</select></li>`).join('')}</ul>
     </section>`;
   }
@@ -299,7 +305,7 @@
   // Each kind says what it means, and opens to show what actually landed in it this week.
   function kindBars(kinds, total, w) {
     const rows = Object.entries(kinds).sort((a, b) => b[1] - a[1]);
-    if (!rows.length) return '<p class="empty-row">這週還沒有資料</p>';
+    if (!rows.length) return `<p class="empty-row">${L('這週還沒有資料', 'No data this week yet')}</p>`;
     const max = rows[0][1];
     const sitesIn = (kind) => {
       const by = {};
@@ -316,7 +322,7 @@
           <span class="kv">${hm(ms)}<small>${Math.round((ms / total) * 100)}%</small></span>
         </summary>
         <p class="kdesc">${e(K.desc)}</p>
-        <ul class="ditems">${list.slice(0, 8).map(([s, t]) => `<li><span>${e(s)}</span><em>${hm(t)}</em></li>`).join('')}</ul>
+        <ul class="ditems">${list.slice(0, 8).map(([s, t]) => `<li><span>${e(tr(s))}</span><em>${hm(t)}</em></li>`).join('')}</ul>
       </details></li>`;
     }).join('')}</ul>`;
   }
@@ -332,7 +338,7 @@
     if (act === 'day') { selDay = Number(el.dataset.i); render(); root.querySelector('.card.day')?.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); }
     if (act === 'editProject') { editing = el.dataset.id; render(); root.querySelector('.pedit input')?.focus(); }
     if (act === 'cancelEdit') { editing = null; render(); }
-    if (act === 'deleteProject' && confirm('刪除這個專案？時間紀錄會變回「未分類」，不會消失。')) {
+    if (act === 'deleteProject' && confirm(L('刪除這個專案？時間紀錄會變回「未分類」，不會消失。', 'Delete this project? Its time becomes “Unsorted” — nothing is lost.'))) {
       editing = null; send({ type: 'deleteProject', id: el.dataset.id });
     }
   });

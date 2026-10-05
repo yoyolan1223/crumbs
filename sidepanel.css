@@ -298,3 +298,9 @@ footer { align-items: flex-end; }
 .c-sub .t { flex: none; color: var(--ink-3); font-size: 11px; font-variant-numeric: tabular-nums; }
 .c-sub .s { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .c-sub .d { flex: none; color: var(--ink-3); font-size: 11px; }
+
+/* ── language picker (footer) ── */
+.foot-r { display: flex; align-items: center; gap: 10px; margin-left: auto; }
+.lang-pick { display: inline-flex; align-items: center; gap: 4px; color: var(--ink-3); }
+.lang-pick select { font: inherit; color: var(--ink-2); background: transparent; border: 1px solid var(--line); border-radius: 999px; padding: 2px 6px; cursor: pointer; }
+.lang-pick select:hover { color: var(--ink); border-color: var(--ink-3); }

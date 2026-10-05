@@ -4,19 +4,63 @@
   const MIN = 60e3;
   const HOUR = 60 * MIN;
 
+  // ── Language ───────────────────────────────────────────────────
+  // settings.lang: 'auto' | 'zh' | 'en'. 'auto' follows the browser / system language.
+  let LANG = 'zh';
+  function resolveLang(pref) {
+    if (pref === 'zh' || pref === 'en') return pref;
+    // The Mac app hands over the system language (a web view's navigator.language can't be trusted there).
+    const nav = root.__CRUMBS_SYSLANG__ ||
+      (typeof navigator !== 'undefined' && (navigator.languages?.[0] || navigator.language)) || 'zh';
+    return /^zh/i.test(nav) ? 'zh' : 'en';
+  }
+  function setLang(pref) { LANG = resolveLang(pref); return LANG; }
+  const lang = () => LANG;
+  /** Inline pair: L('今天', 'Today'). */
+  const L = (zh, en) => (LANG === 'en' ? en : zh);
+
+  // Strings that were saved in Chinese (verbs, site names, generated titles) → English at display time,
+  // so switching language also translates history.
+  const TR = {
+    寫文件: 'Writing', 整理表格: 'Spreadsheets', 做簡報: 'Slides', 弄表單: 'Forms', 看行程: 'Calendar',
+    開發測試: 'Testing', 寫程式: 'Coding', 做設計: 'Designing', 寫筆記: 'Notes', 排任務: 'Planning',
+    '問 AI': 'Asking AI', 搜尋: 'Searching', 看影片: 'Watching', 找影片: 'Browsing videos', 回訊息: 'Messages',
+    滑社群: 'Social media', 逛購物: 'Shopping', 看資料: 'Reading', 處理信件: 'Email', 下指令: 'Terminal',
+    找檔案: 'Files', 看文件: 'Reading docs', 開會: 'Meeting', 聽音樂: 'Music', 瀏覽: 'Browsing', 使用: 'Using',
+    改設定: 'Settings', 待辦: 'To-do',
+    'Google 文件': 'Google Docs', 'Google 雲端': 'Google Drive', 'Google 日曆': 'Google Calendar',
+    'Google 試算表': 'Google Sheets', 'Google 簡報': 'Google Slides', 'Google 表單': 'Google Forms',
+    蝦皮: 'Shopee', 維基百科: 'Wikipedia', 其他: 'Other', '清信件、回信': 'Inbox & replies', 排行程: 'Scheduling',
+  };
+  const TR_RE = [
+    [/^搜尋「(.*)」$/, (m) => `Search “${m[1]}”`],
+    [/^「(.*)」$/, (m) => `“${m[1]}”`],
+    [/^回 (.+) 訊息$/, (m) => `Messages on ${m[1]}`],
+    [/^逛 (.+)$/, (m) => `Browsing ${m[1]}`],
+    [/^滑 (.+)$/, (m) => `Scrolling ${m[1]}`],
+    [/^測試 (.+)$/, (m) => `Testing ${m[1]}`],
+  ];
+  function tr(s) {
+    if (LANG !== 'en' || !s) return s;
+    if (TR[s]) return TR[s];
+    for (const [re, f] of TR_RE) { const m = s.match(re); if (m) return f(m); }
+    return s;
+  }
+
   // ── Kinds of work ──────────────────────────────────────────────
   // desc: what falls into each kind, in words people recognise.
+  const kind = (w, zh, en, dzh, den) => ({ w, get label() { return L(zh, en); }, get desc() { return L(dzh, den); } });
   const KIND = {
-    create: { w: 3.0, label: '創作', desc: '寫文件、做簡報、做設計、寫筆記' },
-    work:   { w: 3.0, label: '工作', desc: '寫程式、整理表格、排任務、問 AI、看行程' },
-    todo:   { w: 2.8, label: '待辦', desc: '你自己加進清單的事' },
-    comm:   { w: 2.4, label: '溝通', desc: '處理信件、回訊息、開會' },
-    learn:  { w: 2.0, label: '學習', desc: '看資料、讀文件、上課' },
-    search: { w: 1.6, label: '查資料', desc: 'Google 搜尋' },
-    browse: { w: 1.2, label: '瀏覽', desc: '其他還沒歸類的網站和 App（例如 Finder、一般網頁）' },
-    shop:   { w: 0.6, label: '購物', desc: '蝦皮、momo、Amazon 等購物網站' },
-    social: { w: 0.4, label: '社群', desc: 'Facebook、Instagram、Threads、Dcard 等' },
-    fun:    { w: 0.4, label: '娛樂', desc: 'YouTube、Netflix、聽音樂' },
+    create: kind(3.0, '創作', 'Create', '寫文件、做簡報、做設計、寫筆記', 'Docs, slides, design, notes'),
+    work:   kind(3.0, '工作', 'Work', '寫程式、整理表格、排任務、問 AI、看行程', 'Coding, spreadsheets, planning, asking AI, calendar'),
+    todo:   kind(2.8, '待辦', 'To-do', '你自己加進清單的事', 'Things you added to the list yourself'),
+    comm:   kind(2.4, '溝通', 'Talk', '處理信件、回訊息、開會', 'Email, messages, meetings'),
+    learn:  kind(2.0, '學習', 'Learn', '看資料、讀文件、上課', 'Reading, docs, classes'),
+    search: kind(1.6, '查資料', 'Search', 'Google 搜尋', 'Google searches'),
+    browse: kind(1.2, '瀏覽', 'Browse', '其他還沒歸類的網站和 App（例如 Finder、一般網頁）', 'Other sites and apps not sorted yet (e.g. Finder, general web pages)'),
+    shop:   kind(0.6, '購物', 'Shop', '蝦皮、momo、Amazon 等購物網站', 'Shopping sites like Amazon, Shopee, momo'),
+    social: kind(0.4, '社群', 'Social', 'Facebook、Instagram、Threads、Dcard 等', 'Facebook, Instagram, Threads, Reddit…'),
+    fun:    kind(0.4, '娛樂', 'Fun', 'YouTube、Netflix、聽音樂', 'YouTube, Netflix, music'),
   };
 
   const SITES = {
@@ -156,7 +200,8 @@
     st.crumbs = st.crumbs || [];
     st.tasks = st.tasks || {};
     st.current = st.current || null;
-    st.settings = { toast: false, notch: true, ...(st.settings || {}) };
+    st.settings = { toast: false, notch: true, lang: 'auto', ...(st.settings || {}) };
+    setLang(st.settings.lang); // every context loads state through here
     if (st.settings.v2 !== true) { st.settings.toast = false; st.settings.v2 = true; } // no more auto pop-ups by default
     st.jar = st.jar || emptyJar();
     st.days = st.days || {};       // { 'YYYY-M-D': { t: { taskKey: ms } } }
@@ -203,34 +248,34 @@
 
   const CHEERS = {
     done: [
-      '「{t}」完成！我幫你收進罐子裡了。下一件慢慢來就好。',
-      '做完「{t}」了！你的大腦剛剛完成一件不容易的事，給它一點掌聲。',
-      '「{t}」收好了。你看，開始了就會結束。',
-      '又一件！「{t}」搞定。要不要先站起來伸個懶腰？',
-      '「{t}」完成。記得：做完比做到完美重要。',
+      ['「{t}」完成！我幫你收進罐子裡了。下一件慢慢來就好。', '“{t}” done! Into the jar it goes. Take the next one slowly.'],
+      ['做完「{t}」了！你的大腦剛剛完成一件不容易的事，給它一點掌聲。', 'Finished “{t}”! Your brain just did something hard — give it a round of applause.'],
+      ['「{t}」收好了。你看，開始了就會結束。', '“{t}” is wrapped up. See? Things you start do end.'],
+      ['又一件！「{t}」搞定。要不要先站起來伸個懶腰？', 'Another one! “{t}” is done. Time to stand up and stretch?'],
+      ['「{t}」完成。記得：做完比做到完美重要。', '“{t}” done. Remember: done beats perfect.'],
     ],
     step: [
-      '往前一格！「{t}」到 {p}% 了。',
-      '{p}%！一小步也是一步，我都看到了。',
-      '「{t}」的進度條動了。慢慢推，推得動就好。',
+      ['往前一格！「{t}」到 {p}% 了。', 'One step forward! “{t}” is at {p}%.'],
+      ['{p}%！一小步也是一步，我都看到了。', '{p}%! A small step is still a step. I saw it.'],
+      ['「{t}」的進度條動了。慢慢推，推得動就好。', 'The progress bar on “{t}” moved. Slow pushes still count.'],
     ],
     comeback: [
-      '歡迎回來！能自己把注意力拉回來，本身就是一種超能力。',
-      '你回來「{t}」了～分心不是失敗，回來才是重點。',
-      '繞了一圈又回到「{t}」，很好，這就是在練習。',
+      ['歡迎回來！能自己把注意力拉回來，本身就是一種超能力。', 'Welcome back! Pulling your own attention back is a superpower.'],
+      ['你回來「{t}」了～分心不是失敗，回來才是重點。', 'You came back to “{t}”. Drifting isn\'t failing — coming back is what counts.'],
+      ['繞了一圈又回到「{t}」，很好，這就是在練習。', 'Took the scenic route back to “{t}”. That\'s exactly the practice.'],
     ],
     focus: [
-      '在「{t}」專心了 25 分鐘以上！注意力肌肉又練壯了一點。',
-      '一口氣待在「{t}」超過 25 分鐘，好厲害。喝口水吧。',
+      ['在「{t}」專心了 25 分鐘以上！注意力肌肉又練壯了一點。', '25+ focused minutes on “{t}”! Your attention muscle just got stronger.'],
+      ['一口氣待在「{t}」超過 25 分鐘，好厲害。喝口水吧。', 'Over 25 minutes straight on “{t}” — impressive. Have some water.'],
     ],
-    first: ['今天的第一粒麵包屑！起步最難，你已經做到了。'],
-    full: ['罐子滿了！今天的你很努力，剩下的時間可以對自己好一點。'],
+    first: [['今天的第一粒麵包屑！起步最難，你已經做到了。', 'First crumb of the day! Starting is the hardest part, and you did it.']],
+    full: [['罐子滿了！今天的你很努力，剩下的時間可以對自己好一點。', 'The jar is full! You worked hard today — be kind to yourself for the rest of it.']],
   };
 
   function cheerLine(e) {
     const pool = e.full ? CHEERS.full : e.first && e.kind !== 'comeback' ? CHEERS.first : CHEERS[e.kind] || CHEERS.done;
-    const line = pool[Math.floor(e.at / 1000) % pool.length];
-    return line.replace('{t}', e.title || '').replace('{p}', e.p || '');
+    const line = L(...pool[Math.floor(e.at / 1000) % pool.length]);
+    return line.replace('{t}', tr(e.title) || '').replace('{p}', e.p || '');
   }
 
   // Stop the clock on the current crumb (window blur, tab switch). Returns the crumb.
@@ -448,6 +493,7 @@
       }
       case 'settings':
         Object.assign(st.settings, msg.patch || {});
+        setLang(st.settings.lang);
         break;
       case 'sync': {
         // What is still open? Tasks whose page / window / app is gone leave the list
@@ -534,7 +580,7 @@
 
   // 7 days ending today (offset 1 = the week before).
   function weekStats(st, now, offset = 0) {
-    const W = '日一二三四五六';
+    const W = L('日一二三四五六', ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']);
     const days = [];
     const proj = {};
     const kinds = {};
@@ -557,7 +603,7 @@
         kinds[kind] = (kinds[kind] || 0) + ms;
       }
       total += dayTotal;
-      days.push({ key: k, date: d, label: i === 0 && offset === 0 ? '今天' : W[d.getDay()], md: `${d.getMonth() + 1}/${d.getDate()}`, by, rec: { ...rec }, total: dayTotal });
+      days.push({ key: k, date: d, label: i === 0 && offset === 0 ? L('今天', 'Today') : W[d.getDay()], md: `${d.getMonth() + 1}/${d.getDate()}`, by, rec: { ...rec }, total: dayTotal });
     }
     return { days, projects: proj, kinds, total };
   }
@@ -572,16 +618,16 @@
   }
 
   function reasonFor(t, ms, now) {
-    if (t.pinned) return '你把它釘在最上面';
-    if (t.progress >= 50 && t.progress < 100) return `做到 ${t.progress}% 了，收尾最划算`;
-    if (t.progress > 0 && t.progress < 50) return '已經起頭了，趁熱接著做';
-    if (t.manual) return '你親手寫下的事';
-    if (t.visits >= 4) return `回來看了 ${t.visits} 次，它一直掛在你心上`;
-    if (ms >= 20 * MIN) return `已經投入 ${fmtDur(ms)}，別讓它涼掉`;
-    if (t.kind === 'comm') return '回完就不用一直惦記';
-    if (t.kind === 'fun' || t.kind === 'social' || t.kind === 'shop') return '放後面，當作完成後的獎勵';
-    if (now - t.lastSeen < 15 * MIN) return '剛剛才碰過，記憶還熱熱的';
-    return '之前開過，還沒結束';
+    if (t.pinned) return L('你把它釘在最上面', 'You pinned it to the top');
+    if (t.progress >= 50 && t.progress < 100) return L(`做到 ${t.progress}% 了，收尾最划算`, `${t.progress}% done — finishing it pays off most`);
+    if (t.progress > 0 && t.progress < 50) return L('已經起頭了，趁熱接著做', 'You\'ve started — keep going while it\'s warm');
+    if (t.manual) return L('你親手寫下的事', 'You wrote this one down yourself');
+    if (t.visits >= 4) return L(`回來看了 ${t.visits} 次，它一直掛在你心上`, `You came back ${t.visits} times — it\'s on your mind`);
+    if (ms >= 20 * MIN) return L(`已經投入 ${fmtDur(ms)}，別讓它涼掉`, `${fmtDur(ms)} in already — don\'t let it go cold`);
+    if (t.kind === 'comm') return L('回完就不用一直惦記', 'Reply and stop carrying it around');
+    if (t.kind === 'fun' || t.kind === 'social' || t.kind === 'shop') return L('放後面，當作完成後的獎勵', 'Saved for later, as a reward');
+    if (now - t.lastSeen < 15 * MIN) return L('剛剛才碰過，記憶還熱熱的', 'You were just there — it\'s still fresh');
+    return L('之前開過，還沒結束', 'Opened earlier, not finished yet');
   }
 
   // Tasks you dragged keep your order; new ones slot in before the first dragged task they outscore.
@@ -628,10 +674,10 @@
   // ── Formatting ─────────────────────────────────────────────────
   function fmtDur(ms) {
     const m = Math.round(ms / MIN);
-    if (m < 1) return '不到 1 分';
-    if (m < 60) return m + ' 分';
+    if (m < 1) return L('不到 1 分', '<1 min');
+    if (m < 60) return m + L(' 分', ' min');
     const h = Math.floor(m / 60), r = m % 60;
-    return r ? `${h} 小時 ${r} 分` : `${h} 小時`;
+    return L(r ? `${h} 小時 ${r} 分` : `${h} 小時`, r ? `${h} hr ${r} min` : `${h} hr`);
   }
   function fmtClock(ts) {
     const d = new Date(ts);
@@ -639,9 +685,9 @@
   }
   function fmtAgo(ts, now) {
     const m = Math.round((now - ts) / MIN);
-    if (m < 1) return '剛剛';
-    if (m < 60) return m + ' 分鐘前';
-    return Math.round(m / 60) + ' 小時前';
+    if (m < 1) return L('剛剛', 'just now');
+    if (m < 60) return m + L(' 分鐘前', ' min ago');
+    return Math.round(m / 60) + L(' 小時前', ' hr ago');
   }
   const esc = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, (c) =>
     ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -718,6 +764,7 @@ ${heap}
   }
 
   root.Crumbs = {
+    L, tr, setLang, resolveLang, lang,
     award, jarDay, jarOf, streak, cheerLine, jarSVG, dayKey, JAR_GOAL,
     migrate, projectOf, weekStats, PALETTE, parseRules,
     KIND, describe, cleanTitle, recentPlaces, siteGroup, groupTrail, siteName, emptyState, visit, closeCurrent, reduce,

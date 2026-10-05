@@ -34,17 +34,17 @@ enum TapKey: String, CaseIterable {
 
     var title: String {
         switch self {
-        case .control: return "連按兩下 ⌃ Control"
-        case .rightOption: return "連按兩下右邊的 ⌥ Option"
-        case .rightCommand: return "連按兩下右邊的 ⌘ Command"
-        case .off: return "不用連按（只用 ⌃⌥Z）"
+        case .control: return L("連按兩下 ⌃ Control", "Double-tap ⌃ Control")
+        case .rightOption: return L("連按兩下右邊的 ⌥ Option", "Double-tap right ⌥ Option")
+        case .rightCommand: return L("連按兩下右邊的 ⌘ Command", "Double-tap right ⌘ Command")
+        case .off: return L("不用連按（只用 ⌃⌥Z）", "No double-tap (⌃⌥Z only)")
         }
     }
     var short: String {
         switch self {
-        case .control: return "連按兩下 ⌃"
-        case .rightOption: return "連按兩下右 ⌥"
-        case .rightCommand: return "連按兩下右 ⌘"
+        case .control: return L("連按兩下 ⌃", "double-tap ⌃")
+        case .rightOption: return L("連按兩下右 ⌥", "double-tap right ⌥")
+        case .rightCommand: return L("連按兩下右 ⌘", "double-tap right ⌘")
         case .off: return "⌃⌥Z"
         }
     }

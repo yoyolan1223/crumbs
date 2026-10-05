@@ -94,6 +94,9 @@ final class OverlayController: NSObject, NSWindowDelegate {
 
     func toggle() { panel.isVisible ? hide() : show() }
 
+    /// Redraw in the new language if the bar happens to be open.
+    func refreshLanguage() { model.objectWillChange.send() }
+
     func show() {
         model.refresh()
         Log.write("overlay show: groups=\(model.groups.count) later=\(model.later.count) prev=\(model.prev != nil)")
@@ -216,17 +219,18 @@ private let crumbOrange = Color(red: 0.85, green: 0.47, blue: 0.17)
 
 private func fmtDur(_ s: Double) -> String {
     let m = Int((s / 60).rounded())
-    if m < 1 { return "不到 1 分" }
-    if m < 60 { return "\(m) 分" }
-    return m % 60 == 0 ? "\(m / 60) 小時" : "\(m / 60) 小時 \(m % 60) 分"
+    if m < 1 { return L("不到 1 分", "<1 min") }
+    if m < 60 { return L("\(m) 分", "\(m) min") }
+    return m % 60 == 0 ? L("\(m / 60) 小時", "\(m / 60) hr") : L("\(m / 60) 小時 \(m % 60) 分", "\(m / 60) hr \(m % 60) min")
 }
 
 private let clockFmt: DateFormatter = { let f = DateFormatter(); f.dateFormat = "HH:mm"; return f }()
 private func clock(_ d: Date) -> String { clockFmt.string(from: d) }
 private func hourLabel(_ d: Date) -> String {
     let h = Calendar.current.component(.hour, from: d)
-    let day = Calendar.current.isDateInToday(d) ? "" : "昨天 "
-    return day + (h < 12 ? "上午" : h < 18 ? "下午" : "晚上") + " \(h % 12 == 0 ? 12 : h % 12) 點"
+    let day = Calendar.current.isDateInToday(d) ? "" : L("昨天 ", "Yesterday, ")
+    return day + L((h < 12 ? "上午" : h < 18 ? "下午" : "晚上") + " \(h % 12 == 0 ? 12 : h % 12) 點",
+                   "\(h % 12 == 0 ? 12 : h % 12) \(h < 12 ? "AM" : "PM")")
 }
 
 private var iconCache: [String: NSImage] = [:]
@@ -268,16 +272,16 @@ struct OverlayView: View {
         VStack(alignment: .leading, spacing: 10) {
             header
             if let n = model.prev?.note, !n.isEmpty {
-                Text("你說過要：\(n)")
+                Text(L("你說過要：", "You said: ") + n)
                     .font(.system(size: 12.5))
                     .padding(.horizontal, 10).padding(.vertical, 6)
                     .background(crumbOrange.opacity(0.16), in: RoundedRectangle(cornerRadius: 9))
             }
             field(.note, icon: "pencil", text: $model.note,
-                  placeholder: model.current.map { "在「\($0.subject)」要做什麼？" } ?? "這裡要做什麼？", submit: saveNote)
+                  placeholder: model.current.map { L("在「\($0.subject)」要做什麼？", "What to do in “\(Lang.subject($0.subject))”?") } ?? L("這裡要做什麼？", "What to do here?"), submit: saveNote)
             laterSection
             if !model.groups.isEmpty { trailSection }
-            Text("↑↓ 選擇 · Enter 跳回去 · → 展開 · ⌫ 刪除 · Tab 切換輸入框 · ⌘O 主頁")
+            Text(L("↑↓ 選擇 · Enter 跳回去 · → 展開 · ⌫ 刪除 · Tab 切換輸入框 · ⌘O 主頁", "↑↓ select · Enter jump back · → expand · ⌫ delete · Tab switch field · ⌘O main window"))
                 .font(.system(size: 10.5))
                 .foregroundStyle(.tertiary)
                 .frame(maxWidth: .infinity, alignment: .center)
@@ -298,12 +302,12 @@ struct OverlayView: View {
         HStack(spacing: 10) {
             Image(nsImage: sparrow).resizable().interpolation(.high).frame(width: 40, height: 40)
             VStack(alignment: .leading, spacing: 1) {
-                Text(model.prev == nil ? "你現在在" : "剛剛你在").font(.system(size: 11)).foregroundStyle(.secondary)
+                Text(model.prev == nil ? L("你現在在", "You're on") : L("剛剛你在", "You were just")).font(.system(size: 11)).foregroundStyle(.secondary)
                 if let c = model.prev ?? model.current {
-                    (Text(c.verb).fontWeight(.semibold).foregroundColor(crumbOrange) + Text(" · " + c.subject))
+                    (Text(Lang.verb(c.verb)).fontWeight(.semibold).foregroundColor(crumbOrange) + Text(" · " + Lang.subject(c.subject)))
                         .font(.system(size: 15)).lineLimit(1)
                 } else {
-                    Text("還沒有足跡，切換幾個 App 就會開始記").font(.system(size: 14))
+                    Text(L("還沒有足跡，切換幾個 App 就會開始記", "No crumbs yet — switch between a few apps to start")).font(.system(size: 14))
                 }
             }
             Spacer(minLength: 8)
@@ -312,7 +316,7 @@ struct OverlayView: View {
             }
             Button(action: openMain) {
                 HStack(spacing: 4) {
-                    Text("打開主頁")
+                    Text(L("打開主頁", "Open"))
                     Image(systemName: "arrow.up.left.and.arrow.down.right").font(.system(size: 10, weight: .bold))
                 }
                 .font(.system(size: 12, weight: .semibold))
@@ -321,7 +325,7 @@ struct OverlayView: View {
                 .foregroundStyle(.white)
             }
             .buttonStyle(.plain)
-            .help("接下來、足跡、罐子、一週回顧（⌘O）")
+            .help(L("接下來、足跡、罐子、一週回顧（⌘O）", "Up next, trail, jar, weekly review (⌘O)"))
         }
         .contentShape(Rectangle())
         .onTapGesture(count: 2) { openMain() }
@@ -343,14 +347,14 @@ struct OverlayView: View {
     // ── 等一下要做 ─────────────────────────────────────────────────
     private var laterSection: some View {
         VStack(alignment: .leading, spacing: 4) {
-            sectionTitle("等一下要做", trailing: model.later.isEmpty ? nil : "\(model.later.count)")
+            sectionTitle(L("等一下要做", "Later"), trailing: model.later.isEmpty ? nil : "\(model.later.count)")
             ForEach(model.later.prefix(4)) { l in
                 HStack(spacing: 8) {
                     Button { doneLater(l) } label: {
                         Image(systemName: "circle").font(.system(size: 13)).foregroundStyle(.secondary)
                     }
                     .buttonStyle(.plain)
-                    .help("做完了")
+                    .help(L("做完了", "Done"))
                     Text(l.title).font(.system(size: 13)).lineLimit(1)
                     Spacer(minLength: 4)
                     if l.url != nil {
@@ -364,16 +368,16 @@ struct OverlayView: View {
                 .onTapGesture { openLater(l) }
             }
             if model.later.count > 4 {
-                Text("還有 \(model.later.count - 4) 件，在主頁「接下來」").font(.system(size: 11)).foregroundStyle(.tertiary).padding(.leading, 8)
+                Text(L("還有 \(model.later.count - 4) 件，在主頁「接下來」", "\(model.later.count - 4) more in “Up next” on the main window")).font(.system(size: 11)).foregroundStyle(.tertiary).padding(.leading, 8)
             }
-            field(.later, icon: "plus", text: $model.laterText, placeholder: "等一下要做…（可以貼還沒點開的網址）", submit: addLater)
+            field(.later, icon: "plus", text: $model.laterText, placeholder: L("等一下要做…（可以貼還沒點開的網址）", "Do later… (you can paste a link you haven't opened)"), submit: addLater)
         }
     }
 
     // ── 過去 24 小時 ───────────────────────────────────────────────
     private var trailSection: some View {
         VStack(alignment: .leading, spacing: 2) {
-            sectionTitle("過去 24 小時", trailing: nil)
+            sectionTitle(L("過去 24 小時", "Last 24 hours"), trailing: nil)
             ScrollViewReader { proxy in
                 ScrollView {
                     LazyVStack(alignment: .leading, spacing: 2) {
@@ -404,12 +408,12 @@ struct OverlayView: View {
             HStack(spacing: 10) {
                 Image(nsImage: appIcon(c.bundleId)).resizable().frame(width: 20, height: 20)
                     .opacity(c.closed == true ? 0.5 : 1)
-                (Text(c.verb).fontWeight(.medium) + Text(" · " + c.subject).foregroundColor(.primary.opacity(0.85)))
+                (Text(Lang.verb(c.verb)).fontWeight(.medium) + Text(" · " + Lang.subject(c.subject)).foregroundColor(.primary.opacity(0.85)))
                     .font(.system(size: 13)).lineLimit(1)
                     .opacity(c.closed == true ? 0.6 : 1)
                 if pages.count > 1 {
                     Button { toggle(g) } label: {
-                        Text("＋\(pages.count - 1) 頁 \(open ? "▴" : "▾")")
+                        Text("＋\(pages.count - 1) " + L("頁", pages.count == 2 ? "page" : "pages") + " \(open ? "▴" : "▾")")
                             .font(.system(size: 10.5, weight: .bold))
                             .padding(.horizontal, 6).padding(.vertical, 1)
                             .background(crumbOrange.opacity(0.22), in: Capsule())
@@ -420,7 +424,7 @@ struct OverlayView: View {
                     Text("— " + c.note).font(.system(size: 12)).foregroundStyle(.secondary).lineLimit(1)
                 }
                 Spacer(minLength: 6)
-                Text(c.closed == true ? "已關閉" : fmtDur(g.totalSec)).font(.system(size: 11)).foregroundStyle(.tertiary).lineLimit(1)
+                Text(c.closed == true ? L("已關閉", "Closed") : fmtDur(g.totalSec)).font(.system(size: 11)).foregroundStyle(.tertiary).lineLimit(1)
                 Text(clock(c.startedAt)).font(.system(size: 11)).monospacedDigit().foregroundStyle(.secondary)
                 Button { deleteGroup(g) } label: {
                     Image(systemName: "xmark").font(.system(size: 9, weight: .bold)).frame(width: 18, height: 18)
@@ -428,7 +432,7 @@ struct OverlayView: View {
                 .buttonStyle(.plain)
                 .foregroundStyle(.primary)
                 .opacity(model.hover == g.id || sel ? 0.55 : 0.15)
-                .help("刪除這些足跡")
+                .help(L("刪除這些足跡", "Delete these crumbs"))
             }
             .padding(.horizontal, 8).padding(.vertical, 6)
             .contentShape(Rectangle())
@@ -437,7 +441,7 @@ struct OverlayView: View {
                 ForEach(pages.dropFirst(), id: \.id) { p in
                     HStack(spacing: 8) {
                         Text(clock(p.startedAt)).font(.system(size: 10.5)).monospacedDigit().foregroundStyle(.tertiary)
-                        Text(p.subject).font(.system(size: 12.5)).lineLimit(1)
+                        Text(Lang.subject(p.subject)).font(.system(size: 12.5)).lineLimit(1)
                         Spacer()
                     }
                     .padding(.leading, 38).padding(.vertical, 4)

@@ -2,6 +2,7 @@
 (() => {
   const C = self.Crumbs;
   const e = C.esc;
+  const L = C.L, tr = C.tr;
   const app = document.getElementById('app');
 
   let st = C.emptyState();
@@ -63,9 +64,9 @@
   function progressBar(t, size = '') {
     const segs = [25, 50, 75, 100].map((v) => `
       <button class="seg ${t.progress >= v ? 'on' : ''}" data-act="progress" data-key="${e(t.key)}" data-v="${v}"
-        aria-label="完成度 ${v}%" title="${v}%"></button>`).join('');
-    const label = t.progress === 0 ? '還沒開始' : t.progress === 100 ? '完成' : t.progress + '%';
-    return `<div class="progress ${size}" role="group" aria-label="完成度">${segs}<span class="p-label">${label}</span></div>`;
+        aria-label="${L('完成度', 'Progress')} ${v}%" title="${v}%"></button>`).join('');
+    const label = t.progress === 0 ? L('還沒開始', 'Not started') : t.progress === 100 ? L('完成', 'Done') : t.progress + '%';
+    return `<div class="progress ${size}" role="group" aria-label="${L('完成度', 'Progress')}">${segs}<span class="p-label">${label}</span></div>`;
   }
 
   // ── 啾啾 speaks ────────────────────────────────────────────────
@@ -76,14 +77,14 @@
     if (last)
       return [last.kind === 'comeback' ? 'happy' : 'proud', C.cheerLine(last)];
     if (!open.length && !done.length)
-      return ['sleepy', '還沒撿到麵包屑。去開幾個分頁吧，我會跟在你後面，一粒一粒幫你撿起來。'];
+      return ['sleepy', L('還沒撿到麵包屑。去開幾個分頁吧，我會跟在你後面，一粒一粒幫你撿起來。', 'No crumbs yet. Go open a few things — I\'ll follow along and pick them up one by one.')];
     if (!open.length)
-      return ['proud', `清單清空了！今天完成 ${done.length} 件事。起來喝口水、伸個懶腰吧。`];
+      return ['proud', L(`清單清空了！今天完成 ${done.length} 件事。起來喝口水、伸個懶腰吧。`, `List cleared! ${done.length} things done today. Get up, drink some water, stretch.`)];
     if (recent >= 10)
-      return ['dizzy', `10 分鐘內換了 ${recent} 次分頁，我有點暈……先回到「${open[0].title}」就好，一次一件。`];
+      return ['dizzy', L(`10 分鐘內換了 ${recent} 次分頁，我有點暈……先回到「${tr(open[0].title)}」就好，一次一件。`, `${recent} switches in 10 minutes — I'm a little dizzy… Just go back to “${tr(open[0].title)}”. One thing at a time.`)];
     const t = open[0];
-    if (t.isCurrent) return ['happy', `你正在「${t.title}」，很好！其他分頁先別理，我幫你看著。`];
-    return ['happy', `要不要先回到「${t.title}」？${t.reason}。`];
+    if (t.isCurrent) return ['happy', L(`你正在「${tr(t.title)}」，很好！其他分頁先別理，我幫你看著。`, `You're on “${tr(t.title)}” — nice! Ignore the other tabs, I'll keep an eye on them.`)];
+    return ['happy', L(`要不要先回到「${tr(t.title)}」？${t.reason}。`, `How about going back to “${tr(t.title)}”? ${t.reason}.`)];
   }
 
   // ── Views ──────────────────────────────────────────────────────
@@ -93,6 +94,7 @@
       return;
     }
     pendingRender = false;
+    document.documentElement.lang = C.lang() === 'en' ? 'en' : 'zh-Hant';
     const now = Date.now();
     const { open, done } = C.rankTasks(st, now);
     openKeys = open.map((t) => t.key);
@@ -102,8 +104,8 @@
 
     const longest = open.concat(done).filter((t) => !t.manual).sort((a, b) => b.ms - a.ms)[0];
     const stats = [
-      `<b>${today.length}</b> 個足跡`,
-      longest && longest.ms >= C.MIN ? `最專注：<b>${e(trim(longest.title, 8))}</b> ${C.fmtDur(longest.ms)}` : null,
+      L(`<b>${today.length}</b> 個足跡`, `<b>${today.length}</b> crumbs`),
+      longest && longest.ms >= C.MIN ? `${L('最專注：', 'Most focus: ')}<b>${e(trim(tr(longest.title), L(8, 14)))}</b> ${C.fmtDur(longest.ms)}` : null,
     ].filter(Boolean);
     const jar = C.jarOf(st);
     const jarToday = C.jarDay(st, now);
@@ -120,16 +122,16 @@
       </header>
       <div class="stats">
         ${stats.map((s) => `<span>${s}</span>`).join('<i>·</i>')}
-        <span class="chips-r"><button class="dash-chip" data-act="dashboard" title="一週回顧：每個專案花了多少時間">📊 一週</button>
-        <button class="jar-chip ${jarToday >= jar.goal ? 'full' : ''}" data-act="view" data-v="jar" title="打開麵包屑罐">
+        <span class="chips-r"><button class="dash-chip" data-act="dashboard" title="${L('一週回顧：每個專案花了多少時間', 'Weekly review: where your time went')}">📊 ${L('一週', 'Week')}</button>
+        <button class="jar-chip ${jarToday >= jar.goal ? 'full' : ''}" data-act="view" data-v="jar" title="${L('打開麵包屑罐', 'Open the crumb jar')}">
           ${C.jarSVG(jarToday, jar.goal, 18, 'chip')}<b>${jarToday}</b><small>/${jar.goal}</small>
           ${gained ? `<span class="floater">+${gained}</span>` : ''}
         </button></span>
       </div>
       <nav class="tabs" role="tablist">
-        <button role="tab" aria-selected="${view === 'next'}" data-act="view" data-v="next">接下來 <small>${open.length || ''}</small></button>
-        <button role="tab" aria-selected="${view === 'trail'}" data-act="view" data-v="trail">足跡 <small>${today.length || ''}</small></button>
-        <button role="tab" aria-selected="${view === 'jar'}" data-act="view" data-v="jar">罐子 <small>${jarToday || ''}</small></button>
+        <button role="tab" aria-selected="${view === 'next'}" data-act="view" data-v="next">${L('接下來', 'Up next')} <small>${open.length || ''}</small></button>
+        <button role="tab" aria-selected="${view === 'trail'}" data-act="view" data-v="trail">${L('足跡', 'Trail')} <small>${today.length || ''}</small></button>
+        <button role="tab" aria-selected="${view === 'jar'}" data-act="view" data-v="jar">${L('罐子', 'Jar')} <small>${jarToday || ''}</small></button>
       </nav>
       <main>${view === 'next' ? viewNext(open, done, now) : view === 'jar' ? viewJar(now) : viewTrail(today, now)}</main>
       <footer>
@@ -137,15 +139,22 @@
           <label class="switch">
             <input type="checkbox" data-act="notch" ${st.settings.notch !== false ? 'checked' : ''}>
             <span class="track"><span class="knob"></span></span>
-            網頁右側顯示小麻雀（點它看足跡）
+            ${L('網頁右側顯示小麻雀（點它看足跡）', 'Show the sparrow on the right edge of pages')}
           </label>
           <label class="switch">
             <input type="checkbox" data-act="toast" ${st.settings.toast ? 'checked' : ''}>
             <span class="track"><span class="knob"></span></span>
-            切換分頁時自動跳出提醒
+            ${L('切換分頁時自動跳出提醒', 'Pop up a reminder when switching tabs')}
           </label>
         </div>
-        <button class="link" data-act="clear">清空重來</button>
+        <div class="foot-r">
+          <label class="lang-pick" title="${L('語言', 'Language')}">🌐
+            <select data-act="lang" aria-label="${L('語言', 'Language')}">
+              ${[['auto', L('自動', 'Auto')], ['zh', '中文'], ['en', 'English']].map(([v, n]) =>
+                `<option value="${v}" ${(st.settings.lang || 'auto') === v ? 'selected' : ''}>${n}</option>`).join('')}
+            </select></label>
+          <button class="link" data-act="clear">${L('清空重來', 'Start over')}</button>
+        </div>
       </footer>`;
 
     if (gained) app.querySelector('.bird').classList.add('hop');
@@ -163,34 +172,34 @@
     const [top, ...rest] = open;
     const hero = top ? `
       <section class="now" draggable="true" data-drag="${e(top.key)}">
-        <span class="grip hero-grip" title="拖曳調整順序">${ICON.grip}</span>
-        <div class="eyebrow">${top.isCurrent ? '你正在做' : '現在先做這件'} ${projectPick(top)}</div>
-        <div class="now-title">${favicon(top.url, top.site)}<h2>${e(top.title)}</h2></div>
-        <p class="why">${e(top.reason)}${top.note ? `<br><span class="note-inline">你說要：${e(top.note)}</span>` : ''}</p>
+        <span class="grip hero-grip" title="${L('拖曳調整順序', 'Drag to reorder')}">${ICON.grip}</span>
+        <div class="eyebrow">${top.isCurrent ? L('你正在做', 'You\'re on it') : L('現在先做這件', 'Do this first')} ${projectPick(top)}</div>
+        <div class="now-title">${favicon(top.url, top.site)}<h2>${e(tr(top.title))}</h2></div>
+        <p class="why">${e(top.reason)}${top.note ? `<br><span class="note-inline">${L('你說要：', 'You said: ')}${e(top.note)}</span>` : ''}</p>
         ${progressBar(top, 'lg')}
         <div class="row">
           ${top.isCurrent
-            ? `<span class="here">${ICON.check} 你在這頁</span>`
-            : top.url ? `<button class="btn primary" data-act="jump" data-key="${e(top.key)}">回到這頁 ${ICON.arrow}</button>` : ''}
-          <button class="btn ghost" data-act="done" data-key="${e(top.key)}">做完了</button>
+            ? `<span class="here">${ICON.check} ${L('你在這頁', 'You\'re here')}</span>`
+            : top.url ? `<button class="btn primary" data-act="jump" data-key="${e(top.key)}">${L('回到這頁', 'Go back')} ${ICON.arrow}</button>` : ''}
+          <button class="btn ghost" data-act="done" data-key="${e(top.key)}">${L('做完了', 'Done')}</button>
           <span class="spacer"></span>
           ${taskTools(top)}
         </div>
       </section>` : `
       <section class="empty">
-        <p>${done.length ? '沒有待辦了，今天好好收工。' : '開幾個分頁工作一下，這裡會自動長出你的清單。'}</p>
+        <p>${done.length ? L('沒有待辦了，今天好好收工。', 'Nothing left. Call it a day.') : L('開幾個分頁工作一下，這裡會自動長出你的清單。', 'Work for a bit and your list will grow here on its own.')}</p>
       </section>`;
 
     const LIMIT = 4;
     const shown = showMore ? rest : rest.slice(0, LIMIT);
     const list = shown.map((t, i) => `
       <li class="task ${t.isCurrent ? 'current' : ''}" draggable="true" data-drag="${e(t.key)}">
-        <span class="num" title="拖曳調整順序"><i>${i + 2}</i>${ICON.grip}</span>
-        <button class="check" data-act="done" data-key="${e(t.key)}" aria-label="標記完成"></button>
+        <span class="num" title="${L('拖曳調整順序', 'Drag to reorder')}"><i>${i + 2}</i>${ICON.grip}</span>
+        <button class="check" data-act="done" data-key="${e(t.key)}" aria-label="${L('標記完成', 'Mark done')}"></button>
         <div class="t-body" ${t.url ? `data-act="jump" data-key="${e(t.key)}" role="button" tabindex="0"` : ''}>
-          <div class="t-title">${favicon(t.url, t.site)}<span>${e(t.title)}</span></div>
-          <div class="t-meta">${projectPick(t)}<span class="kind k-${t.kind}">${(C.KIND[t.kind] || C.KIND.browse).label}</span>${t.isCurrent ? '<span class="kind k-here">在這頁</span>' : ''}${e(t.reason)}</div>
-          ${t.note ? `<div class="t-note">「${e(t.note)}」</div>` : ''}
+          <div class="t-title">${favicon(t.url, t.site)}<span>${e(tr(t.title))}</span></div>
+          <div class="t-meta">${projectPick(t)}<span class="kind k-${t.kind}">${(C.KIND[t.kind] || C.KIND.browse).label}</span>${t.isCurrent ? `<span class="kind k-here">${L('在這頁', 'Here')}</span>` : ''}${e(t.reason)}</div>
+          ${t.note ? `<div class="t-note">${L('「', '“')}${e(t.note)}${L('」', '”')}</div>` : ''}
         </div>
         <div class="t-side">
           ${progressBar(t)}
@@ -200,31 +209,31 @@
 
     const doneList = done.map((t) => `
       <li class="task done">
-        <button class="check on" data-act="undone" data-key="${e(t.key)}" aria-label="取消完成">${ICON.check}</button>
-        <div class="t-body"><div class="t-title"><span>${e(t.title)}</span></div>
-        <div class="t-meta">${t.doneAt ? C.fmtAgo(t.doneAt, now) + '完成' : ''}${t.ms >= C.MIN ? ' · 花了 ' + C.fmtDur(t.ms) : ''}</div></div>
+        <button class="check on" data-act="undone" data-key="${e(t.key)}" aria-label="${L('取消完成', 'Mark not done')}">${ICON.check}</button>
+        <div class="t-body"><div class="t-title"><span>${e(tr(t.title))}</span></div>
+        <div class="t-meta">${t.doneAt ? L(C.fmtAgo(t.doneAt, now) + '完成', 'Done ' + C.fmtAgo(t.doneAt, now)) : ''}${t.ms >= C.MIN ? L(' · 花了 ', ' · took ') + C.fmtDur(t.ms) : ''}</div></div>
       </li>`).join('');
 
     return `
       ${hero}
-      ${rest.length ? `<h3 class="section">然後<small>${rest.some((t) => t.pos) || top.pos ? '照你排的順序；新的事會自動插進來' : '依進度、投入時間排好了，也可以拖曳調整'}</small></h3><ol class="queue">${list}</ol>` : ''}
+      ${rest.length ? `<h3 class="section">${L('然後', 'Then')}<small>${rest.some((t) => t.pos) || top.pos ? L('照你排的順序；新的事會自動插進來', 'In your order; new things slot in automatically') : L('依進度、投入時間排好了，也可以拖曳調整', 'Sorted by progress and time spent — drag to reorder')}</small></h3><ol class="queue">${list}</ol>` : ''}
       ${rest.length > LIMIT ? `
-        <button class="more" data-act="toggleMore">${showMore ? '收起來，一次看少一點' : `還有 ${rest.length - LIMIT} 件，先不用看`}</button>` : ''}
+        <button class="more" data-act="toggleMore">${showMore ? L('收起來，一次看少一點', 'Show less') : L(`還有 ${rest.length - LIMIT} 件，先不用看`, `${rest.length - LIMIT} more — no need to look yet`)}</button>` : ''}
       <form class="add" data-act="add">
         <span class="add-ic">${ICON.plus}</span>
-        <input name="task" maxlength="60" placeholder="腦中冒出一件事？先丟這裡" autocomplete="off">
+        <input name="task" maxlength="60" placeholder="${L('腦中冒出一件事？先丟這裡', 'Something popped into your head? Drop it here')}" autocomplete="off">
       </form>
       ${done.length ? `
         <button class="section toggle" data-act="toggleDone" aria-expanded="${showDone}">
-          完成了 ${done.length} 件 <span class="chev">▾</span>
+          ${L(`完成了 ${done.length} 件`, `${done.length} done`)} <span class="chev">▾</span>
         </button>
         ${showDone ? `<ol class="queue">${doneList}</ol>` : ''}` : ''}`;
   }
 
   function taskTools(t) {
     return `
-      <button class="icon ${t.pinned ? 'on' : ''}" data-act="pin" data-key="${e(t.key)}" title="${t.pinned ? '取消釘選' : '釘在最上面'}" aria-label="釘選">${ICON.pin}</button>
-      <button class="icon del" data-act="delete" data-key="${e(t.key)}" title="刪除這件事" aria-label="刪除「${e(t.title)}」">${ICON.x}</button>`;
+      <button class="icon ${t.pinned ? 'on' : ''}" data-act="pin" data-key="${e(t.key)}" title="${t.pinned ? L('取消釘選', 'Unpin') : L('釘在最上面', 'Pin to top')}" aria-label="${L('釘選', 'Pin')}">${ICON.pin}</button>
+      <button class="icon del" data-act="delete" data-key="${e(t.key)}" title="${L('刪除這件事', 'Delete')}" aria-label="${L('刪除', 'Delete')} “${e(tr(t.title))}”">${ICON.x}</button>`;
   }
 
   // A tiny select dressed as a chip: which project does this belong to?
@@ -232,16 +241,16 @@
     const p = C.projectOf(st, t.key);
     const dark = matchMedia('(prefers-color-scheme: dark)').matches;
     const color = p ? C.PALETTE[dark ? 'dark' : 'light'][p.color] : '';
-    return `<label class="proj ${p ? 'on' : ''}" style="${p ? `--pc:${color}` : ''}" title="歸到哪個專案">
-      <select data-act="assign" data-key="${e(t.key)}" aria-label="專案">
-        <option value="">${p ? '取消分類' : '＋ 專案'}</option>
+    return `<label class="proj ${p ? 'on' : ''}" style="${p ? `--pc:${color}` : ''}" title="${L('歸到哪個專案', 'Assign to a project')}">
+      <select data-act="assign" data-key="${e(t.key)}" aria-label="${L('專案', 'Project')}">
+        <option value="">${p ? L('取消分類', 'Remove from project') : L('＋ 專案', '＋ Project')}</option>
         ${st.projects.map((x) => `<option value="${e(x.id)}" ${p && p.id === x.id ? 'selected' : ''}>${e(x.name)}</option>`).join('')}
-        <option value="__new">＋ 新增專案…</option>
-      </select><span>${p ? e(p.name) : '＋ 專案'}</span></label>`;
+        <option value="__new">${L('＋ 新增專案…', '＋ New project…')}</option>
+      </select><span>${p ? e(p.name) : L('＋ 專案', '＋ Project')}</span></label>`;
   }
 
-  const JAR_KIND = { done: '完成', step: '前進', comeback: '回來了', focus: '專注' };
-  const WEEKDAY = '日一二三四五六';
+  const JAR_KIND = () => ({ done: L('完成', 'Done'), step: L('前進', 'Step'), comeback: L('回來了', 'Back'), focus: L('專注', 'Focus') });
+  const WEEKDAY = () => L('日一二三四五六', ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']);
 
   function viewJar(now) {
     const jar = C.jarOf(st);
@@ -249,23 +258,23 @@
     const s = C.streak(st, now);
     const todayKey = C.dayKey(now);
     const entries = jar.log.filter((x) => C.dayKey(x.at) === todayKey).reverse();
-    const msg = n === 0 ? '罐子還空空的。<br>完成任何一小步，都會掉進一粒麵包屑。'
-      : n < jar.goal ? `再 <b>${jar.goal - n}</b> 粒，今天的罐子就滿了。`
-      : '今天的罐子滿了！<br>多出來的堆在蓋子上，關都關不起來。';
+    const msg = n === 0 ? L('罐子還空空的。<br>完成任何一小步，都會掉進一粒麵包屑。', 'The jar is empty.<br>Any small step drops a crumb in.')
+      : n < jar.goal ? L(`再 <b>${jar.goal - n}</b> 粒，今天的罐子就滿了。`, `<b>${jar.goal - n}</b> more and today's jar is full.`)
+      : L('今天的罐子滿了！<br>多出來的堆在蓋子上，關都關不起來。', 'Today\'s jar is full!<br>The extras are piling up on the lid.');
 
     const week = [];
     for (let i = 6; i >= 0; i--) {
       const d = new Date(now); d.setDate(d.getDate() - i);
       const c = C.jarDay(st, d.getTime());
-      week.push(`<div class="wk ${i === 0 ? 'today' : ''}" title="${c} 粒">
-        ${C.jarSVG(c, jar.goal, 26, 'w' + i)}<span>${i === 0 ? '今天' : WEEKDAY[d.getDay()]}</span></div>`);
+      week.push(`<div class="wk ${i === 0 ? 'today' : ''}" title="${c} ${L('粒', 'crumbs')}">
+        ${C.jarSVG(c, jar.goal, 26, 'w' + i)}<span>${i === 0 ? L('今天', 'Today') : WEEKDAY()[d.getDay()]}</span></div>`);
     }
 
     const log = entries.map((x) => `
       <li class="jl jl-${x.kind}">
         <span class="jl-t">${C.fmtClock(x.at)}</span>
-        <span class="jl-k">${JAR_KIND[x.kind] || ''}</span>
-        <span class="jl-title">${e(x.title || '')}${x.kind === 'step' ? ` → ${x.p}%` : ''}${x.bonus ? ` <em>專注加成 +${x.bonus}</em>` : ''}</span>
+        <span class="jl-k">${JAR_KIND()[x.kind] || ''}</span>
+        <span class="jl-title">${e(tr(x.title) || '')}${x.kind === 'step' ? ` → ${x.p}%` : ''}${x.bonus ? ` <em>${L('專注加成', 'focus bonus')} +${x.bonus}</em>` : ''}</span>
         <span class="jl-n">+${x.n}</span>
       </li>`).join('');
 
@@ -273,31 +282,31 @@
       <section class="jar-hero">
         <div class="jar-big">${C.jarSVG(n, jar.goal, 118, 'big')}</div>
         <div class="jar-copy">
-          <div class="jar-count"><b>${n}</b><span>/ ${jar.goal} 粒</span></div>
+          <div class="jar-count"><b>${n}</b><span>/ ${jar.goal} ${L('粒', 'crumbs')}</span></div>
           <p>${msg}</p>
           <div class="streak">${s.days
-            ? `連續 <b>${s.days}</b> 天都有完成事情${s.today ? '' : '<br><small>今天做完一件就能延續</small>'}`
-            : '完成第一件事，<br>開始你的連續紀錄'}</div>
+            ? L(`連續 <b>${s.days}</b> 天都有完成事情`, `<b>${s.days}</b>-day streak of finishing things`) + (s.today ? '' : `<br><small>${L('今天做完一件就能延續', 'Finish one thing today to keep it going')}</small>`)
+            : L('完成第一件事，<br>開始你的連續紀錄', 'Finish your first thing<br>to start a streak')}</div>
         </div>
       </section>
       <div class="week">${week.join('')}</div>
-      <h3 class="section">今天收進罐子的</h3>
-      ${log ? `<ol class="jar-log">${log}</ol>` : '<p class="jar-empty">還沒有。去「接下來」點一格進度條試試看？</p>'}
+      <h3 class="section">${L('今天收進罐子的', 'In the jar today')}</h3>
+      ${log ? `<ol class="jar-log">${log}</ol>` : `<p class="jar-empty">${L('還沒有。去「接下來」點一格進度條試試看？', 'Nothing yet. Try tapping a progress step in “Up next”?')}</p>`}
       <div class="how">
-        <div class="how-t">麵包屑怎麼來？</div>
+        <div class="how-t">${L('麵包屑怎麼來？', 'How do you earn crumbs?')}</div>
         <ul>
-          <li><b>+3</b> 完成一件事（投入越久，最多再 +3）</li>
-          <li><b>+1</b> 進度往前一格</li>
-          <li><b>+1</b> 從滑手機、看影片回到正事</li>
-          <li><b>+2</b> 同一頁專心 25 分鐘</li>
+          <li><b>+3</b> ${L('完成一件事（投入越久，最多再 +3）', 'Finish something (up to +3 more the longer you spent)')}</li>
+          <li><b>+1</b> ${L('進度往前一格', 'Move a task one step forward')}</li>
+          <li><b>+1</b> ${L('從滑手機、看影片回到正事', 'Come back from social media or videos to real work')}</li>
+          <li><b>+2</b> ${L('同一頁專心 25 分鐘', 'Focus on one page for 25 minutes')}</li>
         </ul>
-        <p>分心不會扣分。罐子只會越來越滿。</p>
+        <p>${L('分心不會扣分。罐子只會越來越滿。', 'Getting distracted never costs you. The jar only fills up.')}</p>
       </div>`;
   }
 
   function viewTrail(today, now) {
     if (!today.length) {
-      return `<section class="empty"><p>今天還沒有足跡。<br>切換幾個分頁，啾啾就會開始撿。</p></section>`;
+      return `<section class="empty"><p>${L('今天還沒有足跡。<br>切換幾個分頁，啾啾就會開始撿。', 'No crumbs today yet.<br>Switch between a few things and the sparrow starts picking them up.')}</p></section>`;
     }
     const cur = C.currentCrumb(st);
     const live = C.liveMs(st, now);
@@ -306,7 +315,7 @@
     const hours = [];
     for (const c of today.slice().reverse()) {
       const h = new Date(c.startedAt).getHours();
-      const label = `${h < 12 ? '上午' : h < 18 ? '下午' : '晚上'} ${h % 12 || 12} 點`;
+      const label = L(`${h < 12 ? '上午' : h < 18 ? '下午' : '晚上'} ${h % 12 || 12} 點`, `${h % 12 || 12} ${h < 12 ? 'AM' : 'PM'}`);
       if (!hours.length || hours[hours.length - 1].label !== label) hours.push({ label, items: [] });
       hours[hours.length - 1].items.push(c);
     }
@@ -328,22 +337,22 @@
         <span class="time">${C.fmtClock(c.startedAt)}</span>
         <span class="rail">${isCur ? `<span class="perch">${C.sparrow('peek', 26)}</span>` : '<span class="bit"></span>'}</span>
         <div class="c-card" data-act="jumpCrumb" data-id="${e(c.id)}" role="button" tabindex="0">
-          <div class="c-title">${favicon(c.url, c.site)}<span><b>${e(c.verb)}</b> ${e(c.subject)}</span>
-            ${editingNote === c.id || c.note ? '' : `<button class="c-pen" data-act="editNote" data-id="${e(c.id)}" title="記一下在這做什麼" aria-label="記一下在這做什麼">${ICON.pen}</button>`}
-            ${isCur ? '' : `<button class="c-del" data-act="deleteGroup" data-ids="${e(g.items.map((x) => x.id).join(','))}" title="刪除這些足跡" aria-label="刪除這些足跡">${ICON.x}</button>`}</div>
+          <div class="c-title">${favicon(c.url, c.site)}<span><b>${e(tr(c.verb))}</b> ${e(tr(c.subject))}</span>
+            ${editingNote === c.id || c.note ? '' : `<button class="c-pen" data-act="editNote" data-id="${e(c.id)}" title="${L('記一下在這做什麼', 'Note what to do here')}" aria-label="${L('記一下在這做什麼', 'Note what to do here')}">${ICON.pen}</button>`}
+            ${isCur ? '' : `<button class="c-del" data-act="deleteGroup" data-ids="${e(g.items.map((x) => x.id).join(','))}" title="${L('刪除這些足跡', 'Delete these crumbs')}" aria-label="${L('刪除這些足跡', 'Delete these crumbs')}">${ICON.x}</button>`}</div>
           <div class="c-meta">
-            ${e(c.site)} · ${C.fmtDur(total)}
-            ${more.length && distinct > 1 ? `<button class="c-more" data-act="toggleGroup" data-id="${e(c.id)}" aria-expanded="${open}">＋${distinct - 1} 頁 ${open ? '▴' : '▾'}</button>` : ''}
-            ${isCur ? '<span class="badge">你在這裡</span>' : c.closed ? '<span class="badge mute">已關閉・點我重開</span>' : ''}
+            ${e(tr(c.site))} · ${C.fmtDur(total)}
+            ${more.length && distinct > 1 ? `<button class="c-more" data-act="toggleGroup" data-id="${e(c.id)}" aria-expanded="${open}">＋${distinct - 1} ${L('頁', distinct - 1 === 1 ? 'page' : 'pages')} ${open ? '▴' : '▾'}</button>` : ''}
+            ${isCur ? `<span class="badge">${L('你在這裡', 'You\'re here')}</span>` : c.closed ? `<span class="badge mute">${L('已關閉・點我重開', 'Closed · click to reopen')}</span>` : ''}
           </div>
           ${editingNote === c.id ? `
             <form class="note-edit" data-act="saveNote" data-id="${e(c.id)}">
-              <input name="note" maxlength="60" value="${e(c.note)}" placeholder="在這頁要做什麼？" autocomplete="off">
+              <input name="note" maxlength="60" value="${e(c.note)}" placeholder="${L('在這頁要做什麼？', 'What to do here?')}" autocomplete="off">
             </form>` : c.note ? `
-            <button class="c-note" data-act="editNote" data-id="${e(c.id)}">「${e(c.note)}」</button>` : ''}
+            <button class="c-note" data-act="editNote" data-id="${e(c.id)}">${L('「', '“')}${e(c.note)}${L('」', '”')}</button>` : ''}
           ${open ? `<ul class="c-sub">${dedupe(more, c).map((x) => `
             <li data-act="jumpCrumb" data-id="${e(x.id)}" role="button" tabindex="0">
-              <span class="t">${C.fmtClock(x.startedAt)}</span><span class="s">${e(x.subject)}</span><span class="d">${C.fmtDur(msOf(x))}</span>
+              <span class="t">${C.fmtClock(x.startedAt)}</span><span class="s">${e(tr(x.subject))}</span><span class="d">${C.fmtDur(msOf(x))}</span>
             </li>`).join('')}</ul>` : ''}
         </div>
       </li>`;
@@ -387,7 +396,7 @@
         app.querySelector('.note-edit input')?.focus();
         break;
       case 'clear':
-        if (confirm('清空今天的足跡？（做到一半、釘選和手寫的待辦會留下）')) send({ type: 'clearDay' });
+        if (confirm(L('清空今天的足跡？（做到一半、釘選和手寫的待辦會留下）', 'Clear today\'s trail? (Half-done, pinned and hand-written to-dos stay.)'))) send({ type: 'clearDay' });
         break;
     }
   });
@@ -444,11 +453,12 @@
   app.addEventListener('change', (ev) => {
     const act = ev.target.dataset.act;
     if (act === 'toast' || act === 'notch') send({ type: 'settings', patch: { [act]: ev.target.checked } });
+    if (act === 'lang') send({ type: 'settings', patch: { lang: ev.target.value } });
     if (act === 'assign') {
       const key = ev.target.dataset.key;
       let pid = ev.target.value;
       if (pid === '__new') {
-        const name = prompt('新專案的名字？（例如：MindGym 募資、期末報告）');
+        const name = prompt(L('新專案的名字？（例如：MindGym 募資、期末報告）', 'Name of the new project? (e.g. Pitch deck, Thesis)'));
         if (!name || !name.trim()) { render(); return; }
         const before = new Set(st.projects.map((p) => p.id));
         send({ type: 'addProject', name, rules: [] }).then(async () => {

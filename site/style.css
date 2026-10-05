@@ -217,3 +217,5 @@ footer a { color: var(--ink-2); }
   .nav .lang + .btn { margin-left: 0; }
 }
 .trust a { color: inherit; }
+.tags { list-style: none; padding: 0; margin: 22px auto 0; display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; max-width: 640px; }
+.tags li { font-size: 13px; color: var(--ink-2); background: var(--card); border: 1px solid var(--line); border-radius: 999px; padding: 4px 12px; }

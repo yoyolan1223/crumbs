@@ -17,7 +17,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         doubleTap = DoubleTap(key: TapKey.saved) { [weak self] in self?.overlay.toggle() }
 
         status = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
-        let img = NSImage(systemSymbolName: "bird", accessibilityDescription: "麵包屑")
+        let img = NSImage(systemSymbolName: "bird", accessibilityDescription: "Crumbs")
         img?.isTemplate = true
         status.button?.image = img
         let menu = NSMenu()
@@ -25,6 +25,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         status.menu = menu
 
         if !AX.trusted { AX.askForPermission() }
+        // A language switch reaches open windows right away (the menu rebuilds itself when opened).
+        NotificationCenter.default.addObserver(forName: Lang.changed, object: nil, queue: .main) { [weak self] _ in
+            self?.overlay.refreshLanguage()
+        }
         tracker.start()
         Log.write("launched \(Bundle.main.bundlePath) ax=\(AX.trusted)")
         // Global key monitors only start working once Accessibility is granted: re-install when it flips.
@@ -47,15 +51,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         menu.removeAllItems()
         let s = Store.shared
         if let p = s.previous() {
-            menu.addItem(disabled("剛剛你在：\(p.verb) · \(p.subject)"))
+            menu.addItem(disabled(L("剛剛你在：", "You were just: ") + "\(Lang.verb(p.verb)) · \(Lang.subject(p.subject))"))
         } else {
-            menu.addItem(disabled("麵包屑正在跟著你 🐦"))
+            menu.addItem(disabled(L("麵包屑正在跟著你 🐦", "Crumbs is following you 🐦")))
         }
         let places = s.recentPlaces(6)
         if !places.isEmpty {
             menu.addItem(.separator())
             for c in places {
-                let item = NSMenuItem(title: "\(c.verb) · \(c.subject)", action: #selector(jumpTo(_:)), keyEquivalent: "")
+                let item = NSMenuItem(title: "\(Lang.verb(c.verb)) · \(Lang.subject(c.subject))", action: #selector(jumpTo(_:)), keyEquivalent: "")
                 item.target = self
                 item.representedObject = c
                 item.toolTip = c.note.isEmpty ? c.app : "\(c.app) — \(c.note)"
@@ -68,16 +72,16 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
             }
         }
         menu.addItem(.separator())
-        let open = NSMenuItem(title: "叫出麵包屑（\(TapKey.saved == .off ? "⌃⌥Z" : TapKey.saved.short + " 或 ⌃⌥Z")）", action: #selector(showOverlay), keyEquivalent: "")
+        let open = NSMenuItem(title: L("叫出麵包屑", "Show Crumbs") + " (\(TapKey.saved == .off ? "⌃⌥Z" : TapKey.saved.short + L(" 或 ⌃⌥Z", " or ⌃⌥Z")))", action: #selector(showOverlay), keyEquivalent: "")
         open.target = self
         menu.addItem(open)
-        let home = NSMenuItem(title: "打開主頁（接下來・足跡・罐子）", action: #selector(showMain), keyEquivalent: "o")
+        let home = NSMenuItem(title: L("打開主頁（接下來・足跡・罐子）", "Open main window (Up next · Trail · Jar)"), action: #selector(showMain), keyEquivalent: "o")
         home.target = self
         menu.addItem(home)
-        let week = NSMenuItem(title: "📊 一週回顧", action: #selector(showWeek), keyEquivalent: "")
+        let week = NSMenuItem(title: "📊 " + L("一週回顧", "Weekly review"), action: #selector(showWeek), keyEquivalent: "")
         week.target = self
         menu.addItem(week)
-        let keys = NSMenuItem(title: "叫出方式", action: nil, keyEquivalent: "")
+        let keys = NSMenuItem(title: L("叫出方式", "Shortcut"), action: nil, keyEquivalent: "")
         let sub = NSMenu()
         for k in TapKey.allCases {
             let i = NSMenuItem(title: k.title, action: #selector(chooseKey(_:)), keyEquivalent: "")
@@ -88,28 +92,39 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         }
         keys.submenu = sub
         menu.addItem(keys)
-        let pause = NSMenuItem(title: tracker.paused ? "繼續記錄" : "暫停記錄", action: #selector(togglePause), keyEquivalent: "")
+        let lang = NSMenuItem(title: "🌐 " + L("語言", "Language"), action: nil, keyEquivalent: "")
+        let langs = NSMenu()
+        for (v, name) in [("auto", L("跟系統一樣", "Same as system")), ("zh", "中文"), ("en", "English")] {
+            let i = NSMenuItem(title: name, action: #selector(chooseLang(_:)), keyEquivalent: "")
+            i.target = self
+            i.representedObject = v
+            i.state = Lang.pref == v ? .on : .off
+            langs.addItem(i)
+        }
+        lang.submenu = langs
+        menu.addItem(lang)
+        let pause = NSMenuItem(title: tracker.paused ? L("繼續記錄", "Resume") : L("暫停記錄", "Pause"), action: #selector(togglePause), keyEquivalent: "")
         pause.target = self
         menu.addItem(pause)
         if !AX.trusted {
-            let ax = NSMenuItem(title: "⚠️ 授權「輔助使用」才看得到視窗標題…", action: #selector(askAX), keyEquivalent: "")
+            let ax = NSMenuItem(title: L("⚠️ 授權「輔助使用」才看得到視窗標題…", "⚠️ Allow Accessibility to see window titles…"), action: #selector(askAX), keyEquivalent: "")
             ax.target = self
             menu.addItem(ax)
         }
         if !Browser.denied.isEmpty {
-            let au = NSMenuItem(title: "⚠️ 讀不到瀏覽器分頁：到「自動化」允許麵包屑控制瀏覽器…", action: #selector(askAutomation), keyEquivalent: "")
+            let au = NSMenuItem(title: L("⚠️ 讀不到瀏覽器分頁：到「自動化」允許麵包屑控制瀏覽器…", "⚠️ Can't read browser tabs: allow Crumbs under Automation…"), action: #selector(askAutomation), keyEquivalent: "")
             au.target = self
             menu.addItem(au)
         }
-        let login = NSMenuItem(title: "開機時自動啟動", action: #selector(toggleLogin), keyEquivalent: "")
+        let login = NSMenuItem(title: L("開機時自動啟動", "Launch at login"), action: #selector(toggleLogin), keyEquivalent: "")
         login.target = self
         login.state = SMAppService.mainApp.status == .enabled ? .on : .off
         menu.addItem(login)
-        let folder = NSMenuItem(title: "打開資料夾", action: #selector(openFolder), keyEquivalent: "")
+        let folder = NSMenuItem(title: L("打開資料夾", "Open data folder"), action: #selector(openFolder), keyEquivalent: "")
         folder.target = self
         menu.addItem(folder)
         menu.addItem(.separator())
-        menu.addItem(NSMenuItem(title: "結束 Crumbs 麵包屑", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q"))
+        menu.addItem(NSMenuItem(title: L("結束 Crumbs 麵包屑", "Quit Crumbs"), action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q"))
     }
 
     private func disabled(_ t: String) -> NSMenuItem {
@@ -130,6 +145,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         doubleTap.key = k
         Log.write("tap key → \(k.rawValue)")
     }
+    @objc private func chooseLang(_ sender: NSMenuItem) {
+        if let v = sender.representedObject as? String { Lang.set(v) }
+    }
     @objc private func togglePause() { tracker.paused.toggle() }
     @objc private func askAX() {
         AX.askForPermission()
@@ -143,8 +161,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
             if SMAppService.mainApp.status == .enabled { try SMAppService.mainApp.unregister() } else { try SMAppService.mainApp.register() }
         } catch {
             let a = NSAlert()
-            a.messageText = "沒辦法設定開機啟動"
-            a.informativeText = "把「麵包屑」搬到「應用程式」資料夾後再試一次。\n\n(\(error.localizedDescription))"
+            a.messageText = L("沒辦法設定開機啟動", "Couldn't turn on launch at login")
+            a.informativeText = L("把「麵包屑」搬到「應用程式」資料夾後再試一次。", "Move Crumbs to the Applications folder and try again.") + "\n\n(\(error.localizedDescription))"
             a.runModal()
         }
     }

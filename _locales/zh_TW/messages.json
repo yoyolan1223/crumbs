@@ -1,0 +1,7 @@
+{
+  "name": { "message": "麵包屑 Crumbs" },
+  "description": { "message": "給分心大腦的小麻雀：自動記下你開過的分頁、在每頁做什麼，並幫你排好下一步。" },
+  "action_title": { "message": "打開麵包屑" },
+  "cmd_open": { "message": "打開麵包屑側欄" },
+  "cmd_trail": { "message": "我剛剛在幹嘛？（在頁面上顯示足跡）" }
+}

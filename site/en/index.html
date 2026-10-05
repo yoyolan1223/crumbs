@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Crumbs — “Wait, what was I doing?” A free Mac app for distracted (ADHD) brains</title>
   <meta name="description" content="Crumbs is a little sparrow in your Mac menu bar that remembers every app, window and tab you hop through. Double-tap ⌃ to jump back to what you were doing. Free, open source, no account, and your data never leaves your Mac.">
-  <meta name="keywords" content="ADHD app Mac, what was I doing, context switching, task switching, distraction, focus, time tracker Mac, free, open source">
+  <meta name="keywords" content="ADHD, macOS, Mac app, productivity, focus, time tracking, menu bar app, Swift, Chrome extension, context switching, open source, what was I doing, ADHD app for Mac, free">
   <link rel="canonical" href="https://crumbs.01-crumbs.workers.dev/en/">
   <link rel="alternate" hreflang="zh-Hant" href="https://crumbs.01-crumbs.workers.dev/">
   <link rel="alternate" hreflang="en" href="https://crumbs.01-crumbs.workers.dev/en/">
@@ -61,8 +61,8 @@
           <li>✓ No sign-up, no login</li>
           <li>✓ Data stays on your Mac</li>
           <li>✓ <a href="https://github.com/yoyolan1223/crumbs">Open source</a></li>
+          <li>✓ English &amp; 中文</li>
         </ul>
-        <p class="ui-note">Heads-up: the app's interface is in Traditional Chinese for now. An English UI is on the way — <a href="https://github.com/yoyolan1223/crumbs">star the repo</a> to follow along.</p>
       </div>
 
       <!-- Live demo: switch apps → double-tap ⌃ → the bar rises → jump back -->
@@ -139,7 +139,7 @@
             <li>Something just popped into your head? Toss it in the list</li>
           </ul>
         </div>
-        <figure class="m-shot phone"><img src="../img/panel-next.png" alt="The “Up next” list in the main window, suggesting which task to do first and how far along it is" loading="lazy" width="560" height="960"><figcaption>Main window · “Up next”</figcaption></figure>
+        <figure class="m-shot phone"><img src="../img/panel-next-en.png" alt="The “Up next” list in the main window, suggesting which task to do first and how far along it is" loading="lazy" width="560" height="960"><figcaption>Main window · “Up next”</figcaption></figure>
       </article>
 
       <article class="moment">
@@ -152,7 +152,7 @@
             <li>See how many times you pulled yourself back from a distraction</li>
           </ul>
         </div>
-        <figure class="m-shot wide"><img src="../img/dashboard.png" alt="Weekly review: a bar chart of time per project for each day, plus a project list" loading="lazy" width="1000" height="1180"><figcaption>Weekly review</figcaption></figure>
+        <figure class="m-shot wide"><img src="../img/dashboard-en.png" alt="Weekly review: a bar chart of time per project for each day, plus a project list" loading="lazy" width="1000" height="1180"><figcaption>Weekly review</figcaption></figure>
       </article>
 
       <article class="moment flip">
@@ -161,7 +161,7 @@
           <h3>Getting distracted never costs you points</h3>
           <p>Finishing something, moving a task one step forward, <strong>coming back from your phone to the real work</strong> — each drops a crumb into your jar. We reward coming back, instead of scolding you for drifting off.</p>
         </div>
-        <figure class="m-shot phone"><img src="../img/panel-jar.png" alt="The crumb jar: 9 of 24 crumbs today, a 4-day streak of finishing things" loading="lazy" width="560" height="960"><figcaption>Main window · “Jar”</figcaption></figure>
+        <figure class="m-shot phone"><img src="../img/panel-jar-en.png" alt="The crumb jar: 9 of 24 crumbs today, a 4-day streak of finishing things" loading="lazy" width="560" height="960"><figcaption>Main window · “Jar”</figcaption></figure>
       </article>
     </section>
 
@@ -231,7 +231,7 @@
       <details open><summary>Is my data uploaded anywhere?</summary><p>No. Everything stays on your own Mac (<code>~/Library/Application Support/Crumbs</code>). No account, no server. Crumbs only records app names, window titles, page URLs and time spent — it never reads content, takes screenshots or logs your keystrokes.</p></details>
       <details><summary>Is it free?</summary><p>Yes, completely free right now.</p></details>
       <details><summary>Is it open source?</summary><p>Yes. All the code is on <a href="https://github.com/yoyolan1223/crumbs">GitHub</a> under the MIT license, so you can check exactly what it records and confirm nothing is sent anywhere. Issues and ideas are welcome — and if you like it, a ⭐ helps a lot.</p></details>
-      <details><summary>Is the app in English?</summary><p>Not yet — the interface is currently in Traditional Chinese. The shortcuts and the flow are simple enough to use as-is, and an English UI is planned. Want it sooner? Open an issue on GitHub.</p></details>
+      <details><summary>Is the app in English?</summary><p>Yes. Crumbs follows your Mac's language by default, and you can switch between English and Traditional Chinese anytime: sparrow in the menu bar → 🌐 Language, or the 🌐 picker at the bottom of the main window.</p></details>
       <details><summary>Is this an ADHD app?</summary><p>It was built for brains that jump around — ADHD or not. It doesn't diagnose or treat anything; it just helps with the moment of “what was I doing?” after an interruption, which is hard for everyone and especially hard with ADHD.</p></details>
       <details><summary>Does it work on Intel Macs?</summary><p>Only Apple silicon (M1 / M2 / M3 / M4) for now. An Intel build is planned.</p></details>
       <details><summary>Why isn't it on the Mac App Store?</summary><p>App Store apps can't read other apps' windows or switch your browser tabs — the two things Crumbs needs most. So it's signed with an Apple Developer ID and notarized by Apple instead, and opens without any security warnings.</p></details>
@@ -245,6 +245,7 @@
       <h2>Let the sparrow follow you</h2>
       <a class="btn" data-track="EN download: footer" href="../downloads/Crumbs-0.2.3.dmg" download="Crumbs-麵包屑-0.2.3.dmg">Download for Mac — free</a>
       <p class="meta">0.2.3 · macOS 14+ · Apple silicon</p>
+      <ul class="tags" aria-label="Topics"><li>#ADHD</li><li>#macOS</li><li>#Mac app</li><li>#Productivity</li><li>#Focus</li><li>#Time tracking</li><li>#Menu bar app</li><li>#Swift</li><li>#Chrome extension</li><li>#Context switching</li><li>#Open source</li></ul>
     </section>
   </main>
 

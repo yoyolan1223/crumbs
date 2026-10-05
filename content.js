@@ -85,9 +85,9 @@
     host = document.createElement('crumbs-toast');
     root = host.attachShadow({ mode: 'open' });
     root.innerHTML = `<style>${CSS}</style><div class="root">
-      <button class="notch" aria-label="麵包屑：我剛剛在幹嘛？" title="我剛剛在幹嘛？（可上下拖曳）">${C.sparrow('peek', 30)}</button>
+      <button class="notch" aria-label="${C.L('麵包屑：我剛剛在幹嘛？', 'Crumbs: what was I doing?')}" title="${C.L('我剛剛在幹嘛？（可上下拖曳）', 'What was I doing? (drag up or down)')}">${C.sparrow('peek', 30)}</button>
       <div class="cheer" role="status"></div>
-      <div class="card" role="dialog" aria-label="麵包屑足跡"></div></div>`;
+      <div class="card" role="dialog" aria-label="${C.L('麵包屑足跡', 'Crumbs trail')}"></div></div>`;
     document.documentElement.appendChild(host);
     notch = root.querySelector('.notch');
     card = root.querySelector('.card');
@@ -153,28 +153,28 @@
       <li data-id="${e(c.id)}" data-key="${e(c.taskKey || '')}" title="${e(c.subject)}">
         <span class="dot"></span>
         <img class="fav" src="${e(fav(c.url))}" alt="">
-        <span class="li-t">${e(c.verb)} · ${e(c.subject)}${c.note ? ` <em>— ${e(c.note)}</em>` : ''}</span>
+        <span class="li-t">${e(C.tr(c.verb))} · ${e(C.tr(c.subject))}${c.note ? ` <em>— ${e(c.note)}</em>` : ''}</span>
         <span class="li-m">${C.fmtClock(c.startedAt)}</span>
-        <button class="del" data-act="del" aria-label="刪除「${e(c.subject)}」" title="從清單刪除">✕</button>
+        <button class="del" data-act="del" aria-label="${C.L('刪除', 'Delete')} “${e(C.tr(c.subject))}”" title="${C.L('從清單刪除', 'Remove from the list')}">✕</button>
       </li>`).join('');
     card.innerHTML = `
       <div class="head">
         ${C.sparrow('peek', 30)}
         <div class="txt">${head ? `
-          <div class="lead">${prev ? '剛剛你在' : '你現在在'}</div>
-          <div class="what"><b>${e(head.verb)}</b> · ${e(head.subject)}</div>` : '<div class="what">還沒有足跡</div>'}
+          <div class="lead">${prev ? C.L('剛剛你在', 'You were just') : C.L('你現在在', 'You\'re on')}</div>
+          <div class="what"><b>${e(C.tr(head.verb))}</b> · ${e(C.tr(head.subject))}</div>` : `<div class="what">${C.L('還沒有足跡', 'No crumbs yet')}</div>`}
         </div>
         ${prev ? `<span class="dur">${C.fmtDur(prev.activeMs)}</span>` : ''}
-        <button class="x" data-act="close" aria-label="關閉">✕</button>
+        <button class="x" data-act="close" aria-label="${C.L('關閉', 'Close')}">✕</button>
       </div>
       ${cheer ? `<div class="tip"><b>+${cheer.n}</b>${e(cheer.text)}</div>` : ''}
-      ${prev && prev.note ? `<div class="said">你說過要：${e(prev.note)}</div>` : ''}
+      ${prev && prev.note ? `<div class="said">${C.L('你說過要：', 'You said: ')}${e(prev.note)}</div>` : ''}
       <div class="body">
-        ${current ? `<label class="note">這一頁要做什麼？<span class="saved">記下了 ✓</span>
-          <input type="text" maxlength="60" placeholder="例：回 Amy 的報價、補完第 3 頁" value="${e(current.note)}"></label>` : ''}
-        <div class="label">足跡（點一下跳回去）</div>
-        <ol>${items || '<div class="empty">切換幾個分頁，這裡就會有足跡</div>'}</ol>
-        <div class="foot"><span><kbd>⌥</kbd><kbd>⇧</kbd><kbd>Z</kbd> 隨時叫我</span><button data-act="dash">📊 一週回顧</button></div>
+        ${current ? `<label class="note">${C.L('這一頁要做什麼？', 'What to do on this page?')}<span class="saved">${C.L('記下了 ✓', 'Saved ✓')}</span>
+          <input type="text" maxlength="60" placeholder="${C.L('例：回 Amy 的報價、補完第 3 頁', 'e.g. reply to Amy\'s quote, finish page 3')}" value="${e(current.note)}"></label>` : ''}
+        <div class="label">${C.L('足跡（點一下跳回去）', 'Trail (click to jump back)')}</div>
+        <ol>${items || `<div class="empty">${C.L('切換幾個分頁，這裡就會有足跡', 'Switch between a few tabs and your trail shows up here')}</div>`}</ol>
+        <div class="foot"><span><kbd>⌥</kbd><kbd>⇧</kbd><kbd>Z</kbd> ${C.L('隨時叫我', 'anytime')}</span><button data-act="dash">📊 ${C.L('一週回顧', 'Weekly review')}</button></div>
       </div>`;
     card.querySelectorAll('img.fav').forEach((img) => img.addEventListener('error', () => img.remove(), { once: true }));
   }
@@ -256,12 +256,13 @@
   try {
     chrome.storage.local.get(['state', 'notchY']).then(({ state, notchY: y }) => {
       if (state && state.settings) settings = state.settings;
+      C.setLang(settings.lang);
       if (typeof y === 'number') notchY = y;
       mount();
     });
     chrome.storage.onChanged.addListener((ch, area) => {
       if (area !== 'local') return;
-      if (ch.state && ch.state.newValue) { settings = ch.state.newValue.settings || settings; applySettings(); }
+      if (ch.state && ch.state.newValue) { settings = ch.state.newValue.settings || settings; C.setLang(settings.lang); applySettings(); }
       if (ch.notchY) { notchY = ch.notchY.newValue; if (notch) place(); }
     });
   } catch { mount(); }
