@@ -304,3 +304,9 @@ footer { align-items: flex-end; }
 .lang-pick { display: inline-flex; align-items: center; gap: 4px; color: var(--ink-3); }
 .lang-pick select { font: inherit; color: var(--ink-2); background: transparent; border: 1px solid var(--line); border-radius: 999px; padding: 2px 6px; cursor: pointer; }
 .lang-pick select:hover { color: var(--ink); border-color: var(--ink-3); }
+
+/* ── several pasted lines, waiting for Enter ── */
+.paste-preview { margin: -4px 0 12px; padding: 8px 12px; border-radius: 12px; background: var(--crumb-soft); font-size: 13px; }
+.paste-preview ol { margin: 0; padding-left: 20px; }
+.paste-preview li { padding: 2px 0; color: var(--ink); }
+.paste-preview p { margin: 6px 0 0; font-size: 11.5px; color: var(--ink-2); }

@@ -60,6 +60,8 @@ enum AX {
 enum Browser {
     private static let queue = DispatchQueue(label: "crumbs.applescript")
     private(set) static var denied = Set<String>()
+    /// Ask again now and then: the user may have turned the permission on since (no prompt is shown).
+    static func retryDenied() { denied.removeAll() }
 
     private static func run(_ source: String) -> String? {
         var err: NSDictionary?
@@ -181,13 +183,17 @@ final class Tracker {
     }
 
     private var syncTimer: Timer?
+    private var syncCount = 0
 
     /// Tell the store + main page what's still open, so closed tabs / windows / apps leave the lists.
     func syncOpen() {
         let apps = NSWorkspace.shared.runningApplications.filter { $0.activationPolicy == .regular }
         let running = Set(apps.compactMap(\.bundleIdentifier))
-        // Window titles only for apps we have places in (cheap, and only with Accessibility).
-        let tracked = Set(store.crumbs.map(\.bundleId)).subtracting(Describe.browsers)
+        syncCount += 1
+        if syncCount % 12 == 0 { Browser.retryDenied() } // every ~2 minutes
+        // Window titles for apps we have places in (cheap, and only with Accessibility).
+        // Browsers too: without permission to read tabs, window titles are how we notice a closed page.
+        let tracked = Set(store.crumbs.map(\.bundleId))
         var windows: [String: [String]] = [:]
         for a in apps {
             guard let bid = a.bundleIdentifier, tracked.contains(bid),

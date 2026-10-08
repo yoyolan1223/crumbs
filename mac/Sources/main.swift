@@ -10,6 +10,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     private var doubleTap: DoubleTap!
 
     func applicationDidFinishLaunching(_ n: Notification) {
+        installEditMenu()
         Engine.shared.start()
         tracker = Tracker(store: .shared)
         overlay = OverlayController()
@@ -39,6 +40,29 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
                 self?.doubleTap = DoubleTap(key: TapKey.saved) { [weak self] in self?.overlay.toggle() }
             }
         }
+    }
+
+    /// Without an Edit menu, ⌘C / ⌘V / ⌘X / ⌘A / ⌘Z do nothing in the main page (it's never shown: menu-bar app).
+    private func installEditMenu() {
+        let main = NSMenu()
+        let appItem = NSMenuItem()
+        appItem.submenu = NSMenu()
+        appItem.submenu?.addItem(NSMenuItem(title: L("結束 Crumbs 麵包屑", "Quit Crumbs"), action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q"))
+        main.addItem(appItem)
+        let editItem = NSMenuItem()
+        let edit = NSMenu(title: L("編輯", "Edit"))
+        edit.addItem(NSMenuItem(title: L("還原", "Undo"), action: Selector(("undo:")), keyEquivalent: "z"))
+        let redo = NSMenuItem(title: L("重做", "Redo"), action: Selector(("redo:")), keyEquivalent: "z")
+        redo.keyEquivalentModifierMask = [.command, .shift]
+        edit.addItem(redo)
+        edit.addItem(.separator())
+        edit.addItem(NSMenuItem(title: L("剪下", "Cut"), action: #selector(NSText.cut(_:)), keyEquivalent: "x"))
+        edit.addItem(NSMenuItem(title: L("拷貝", "Copy"), action: #selector(NSText.copy(_:)), keyEquivalent: "c"))
+        edit.addItem(NSMenuItem(title: L("貼上", "Paste"), action: #selector(NSText.paste(_:)), keyEquivalent: "v"))
+        edit.addItem(NSMenuItem(title: L("全選", "Select All"), action: #selector(NSText.selectAll(_:)), keyEquivalent: "a"))
+        editItem.submenu = edit
+        main.addItem(editItem)
+        NSApp.mainMenu = main
     }
 
     func applicationWillTerminate(_ n: Notification) {

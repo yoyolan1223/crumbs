@@ -15,6 +15,7 @@
   let dragKey = null;       // task being dragged
   let openKeys = [];        // current order of open tasks, for reordering
   let seenLog = null;       // jar log length we've already celebrated
+  let pasted = [];          // lines pasted into the add box, waiting for Enter
 
   function pref(k, v) {
     try {
@@ -221,7 +222,7 @@
         <button class="more" data-act="toggleMore">${showMore ? L('收起來，一次看少一點', 'Show less') : L(`還有 ${rest.length - LIMIT} 件，先不用看`, `${rest.length - LIMIT} more — no need to look yet`)}</button>` : ''}
       <form class="add" data-act="add">
         <span class="add-ic">${ICON.plus}</span>
-        <input name="task" maxlength="60" placeholder="${L('腦中冒出一件事？先丟這裡', 'Something popped into your head? Drop it here')}" autocomplete="off">
+        <input name="task" maxlength="60" placeholder="${L('腦中冒出一件事？先丟這裡（可以一次貼好幾行）', 'Something popped into your head? Drop it here (paste several lines at once)')}" autocomplete="off">
       </form>
       ${done.length ? `
         <button class="section toggle" data-act="toggleDone" aria-expanded="${showDone}">
@@ -445,7 +446,31 @@
     render();
   });
 
+  // Pasting a block of to-dos: one row per line, shown before you press Enter.
+  function showPasted(form) {
+    let box = form.nextElementSibling;
+    if (!box || !box.classList.contains('paste-preview')) {
+      if (!pasted.length) return;
+      box = document.createElement('div');
+      box.className = 'paste-preview';
+      form.after(box);
+    }
+    if (!pasted.length) { box.remove(); return; }
+    box.innerHTML = `<ol>${pasted.map((l) => `<li>${e(l)}</li>`).join('')}</ol>
+      <p>${L(`按 Enter 加入這 ${pasted.length} 項 · Esc 取消`, `Enter adds these ${pasted.length} · Esc cancels`)}</p>`;
+  }
+  app.addEventListener('paste', (ev) => {
+    const input = ev.target.closest?.('form.add input');
+    if (!input) return;
+    const lines = C.splitLines(ev.clipboardData?.getData('text/plain'));
+    if (lines.length < 2) return;
+    ev.preventDefault();
+    pasted = pasted.concat(lines);
+    showPasted(input.form);
+  });
+
   app.addEventListener('keydown', (ev) => {
+    if (ev.key === 'Escape' && pasted.length && ev.target.closest?.('form.add')) { pasted = []; showPasted(ev.target.form); return; }
     if (ev.key === 'Enter' && ev.target.matches('[role=button]')) ev.target.click();
     if (ev.key === 'Escape' && editingNote) { editingNote = null; ev.target.blur(); render(); }
   });
@@ -477,10 +502,13 @@
     const f = ev.target;
     if (f.dataset.act === 'add') {
       const input = f.elements.task;
-      const title = input.value.trim();
-      if (!title) return;
+      const lines = pasted.concat(C.splitLines(input.value));
+      if (!lines.length) return;
       input.value = '';
-      send({ type: 'addTask', title });
+      pasted = [];
+      showPasted(f);
+      // Newest first in the list: the first line gets the latest time, so it stays on top.
+      lines.forEach((title, i) => send({ type: 'addTask', title, seq: lines.length - i }));
       input.blur();
     } else if (f.dataset.act === 'saveNote') {
       send({ type: 'note', crumbId: f.dataset.id, note: f.elements.note.value });

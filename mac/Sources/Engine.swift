@@ -54,10 +54,23 @@ final class Engine: NSObject, WKScriptMessageHandler, WKUIDelegate, WKNavigation
             }
     }
 
-    func addLater(_ text: String) {
+    /// A pasted block → one to-do per line, without list markers ("- ", "• ", "1. ", "[ ] ").
+    static func splitLines(_ text: String) -> [String] {
+        let marker = try! Regex(#"^\s*(?:[-*•·◦▪︎‣–—]|\d{1,3}[.)、]|\[[ xX]?\]|[☐☑✓✔])\s*"#)
+        return text.split(whereSeparator: \.isNewline)
+            .map { String($0).replacing(marker, with: "").trimmingCharacters(in: .whitespaces) }
+            .filter { !$0.isEmpty }
+    }
+
+    func addLater(lines: [String]) {
+        // The list is newest first: give the first line the latest time so it stays on top.
+        for (i, l) in lines.enumerated().reversed() { addLater(l, seq: lines.count - i) }
+    }
+
+    func addLater(_ text: String, seq: Int = 0) {
         let s = text.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !s.isEmpty else { return }
-        var msg: [String: Any] = ["type": "addTask", "title": s, "later": true]
+        var msg: [String: Any] = ["type": "addTask", "title": s, "later": true, "seq": seq]
         if let u = URL(string: s), let scheme = u.scheme, ["http", "https"].contains(scheme), let host = u.host {
             msg["url"] = s
             let path = u.path.count > 1 ? u.path : ""

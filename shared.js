@@ -210,6 +210,11 @@
     st.projects = st.projects || [];
     return st;
   }
+  /** A pasted block → one to-do per line, without list markers ("- ", "• ", "1. ", "[ ] "). */
+  const splitLines = (text) => String(text || '').split(/\r?\n/)
+    .map((l) => l.replace(/^\s*(?:[-*•·◦▪‣–—]|\d{1,3}[.)、]|\[[ xX]?\]|[☐☑✓✔])\s*/, '').trim())
+    .filter(Boolean);
+
   const uid = (now) => now.toString(36) + Math.random().toString(36).slice(2, 6);
 
   // ── 麵包屑罐 ────────────────────────────────────────────────────
@@ -460,9 +465,10 @@
         const title = (msg.title || '').trim();
         if (!title) break;
         const key = 'manual:' + uid(now);
+        const at = now + (msg.seq || 0); // several pasted lines keep their order (newest first = top line)
         st.tasks[key] = {
           key, title, verb: '待辦', kind: 'todo', site: '', url: msg.url || '', tabId: null, manual: true, custom: true, later: !!msg.later,
-          firstSeen: now, lastSeen: now, totalMs: 0, visits: 0, progress: 0, prevProgress: 0,
+          firstSeen: at, lastSeen: at, totalMs: 0, visits: 0, progress: 0, prevProgress: 0,
           done: false, doneAt: null, pinned: false, hidden: false, note: '',
         };
         break;
@@ -651,8 +657,8 @@
         return { ...t, ms, isCurrent: !!(cur && cur.taskKey === t.key) };
       })
       // A page you merely passed by isn't a task yet: stay a few seconds, or come back to it.
-      .filter((t) => t.manual || t.pinned || t.progress > 0 || t.note || t.pos || t.isCurrent ||
-        t.ms >= 8e3 || t.visits >= 2);
+      .filter((t) => t.manual || t.pinned || t.progress > 0 || t.note || t.pos ||
+        t.ms >= 2 * MIN || t.visits >= 3);
 
     for (const t of list) {
       let s = (KIND[t.kind] || KIND.browse).w * 10;
@@ -764,7 +770,7 @@ ${heap}
   }
 
   root.Crumbs = {
-    L, tr, setLang, resolveLang, lang,
+    L, tr, setLang, resolveLang, lang, splitLines,
     award, jarDay, jarOf, streak, cheerLine, jarSVG, dayKey, JAR_GOAL,
     migrate, projectOf, weekStats, PALETTE, parseRules,
     KIND, describe, cleanTitle, recentPlaces, siteGroup, groupTrail, siteName, emptyState, visit, closeCurrent, reduce,

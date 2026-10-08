@@ -5,13 +5,33 @@ import SwiftUI
 
 final class OverlayPanel: NSPanel {
     var onKey: ((NSEvent) -> Bool)?
+    var onPaste: (() -> Bool)?
     override var canBecomeKey: Bool { true }
     override var canBecomeMain: Bool { false }
 
     // Arrow keys / Enter / Esc / Tab / Delete drive the list unless a text field is being edited.
     override func sendEvent(_ event: NSEvent) {
+        if event.type == .keyDown, editShortcut(event) { return }
         if event.type == .keyDown, let onKey, onKey(event) { return }
         super.sendEvent(event)
+    }
+
+    /// A menu-bar app has no Edit menu, so ⌘X / ⌘C / ⌘V / ⌘A / ⌘Z need wiring by hand.
+    private func editShortcut(_ e: NSEvent) -> Bool {
+        let mods = e.modifierFlags.intersection(.deviceIndependentFlagsMask)
+        guard mods == .command || mods == [.command, .shift], let key = e.charactersIgnoringModifiers?.lowercased() else { return false }
+        let action: Selector? = switch (key, mods.contains(.shift)) {
+        case ("x", false): #selector(NSText.cut(_:))
+        case ("c", false): #selector(NSText.copy(_:))
+        case ("v", false): #selector(NSText.paste(_:))
+        case ("a", false): #selector(NSText.selectAll(_:))
+        case ("z", false): Selector(("undo:"))
+        case ("z", true): Selector(("redo:"))
+        default: nil
+        }
+        guard let action else { return false }
+        if action == #selector(NSText.paste(_:)), let onPaste, onPaste() { return true }
+        return NSApp.sendAction(action, to: nil, from: self)
     }
 }
 
@@ -28,6 +48,8 @@ final class OverlayModel: ObservableObject {
     @Published var focus: OverlayFocus = .list
     @Published var hover: String?
     @Published var expanded = Set<String>()
+    @Published var pasted: [String] = []      // several lines pasted into 等一下要做, waiting for Enter
+    @Published var browserDenied = false
 
     func refresh() {
         let s = Store.shared
@@ -40,6 +62,8 @@ final class OverlayModel: ObservableObject {
         laterText = ""
         focus = .list
         expanded = []
+        pasted = []
+        browserDenied = !Browser.denied.isEmpty
     }
 
     /// Rough height of the scrolling history, so the panel can size itself.
@@ -85,9 +109,11 @@ final class OverlayController: NSObject, NSWindowDelegate {
             openLater: { [weak self] l in self?.openLater(l) },
             doneLater: { [weak self] l in self?.doneLater(l) },
             openMain: { [weak self] in self?.openMain() },
+            fixBrowser: { [weak self] in self?.fixBrowser() },
             close: { [weak self] in self?.hide() }))
         panel.contentView = host
         panel.onKey = { [weak self] e in self?.handle(e) ?? false }
+        panel.onPaste = { [weak self] in self?.pasteLines() ?? false }
     }
 
     var isVisible: Bool { panel.isVisible }
@@ -152,8 +178,24 @@ final class OverlayController: NSObject, NSWindowDelegate {
         hide()
     }
 
+    /// Pasting several lines into 等一下要做 lists them one per row; Enter adds them all.
+    private func pasteLines() -> Bool {
+        guard model.focus == .later, let s = NSPasteboard.general.string(forType: .string) else { return false }
+        let lines = Engine.splitLines(s)
+        guard lines.count > 1 else { return false }
+        model.pasted += lines
+        resize()
+        return true
+    }
+
+    private func fixBrowser() {
+        hide()
+        NSWorkspace.shared.open(URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Automation")!)
+    }
+
     private func addLater() {
-        Engine.shared.addLater(model.laterText)
+        Engine.shared.addLater(lines: model.pasted + Engine.splitLines(model.laterText))
+        model.pasted = []
         model.laterText = ""
         model.later = Engine.shared.later
         resize()
@@ -184,7 +226,8 @@ final class OverlayController: NSObject, NSWindowDelegate {
     private func handle(_ e: NSEvent) -> Bool {
         switch e.keyCode {
         case 53: // esc
-            if model.focus != .list { model.focus = .list } else { hide() }
+            if !model.pasted.isEmpty { model.pasted = []; resize() }
+            else if model.focus != .list { model.focus = .list } else { hide() }
             return true
         case 48: // tab: list → 這頁要做什麼 → 等一下要做 → list
             model.focus = model.focus == .list ? .note : model.focus == .note ? .later : .list
@@ -263,6 +306,7 @@ struct OverlayView: View {
     var openLater: (Engine.Later) -> Void
     var doneLater: (Engine.Later) -> Void
     var openMain: () -> Void
+    var fixBrowser: () -> Void
     var close: () -> Void
     @FocusState private var focused: OverlayFocus?
 
@@ -271,6 +315,17 @@ struct OverlayView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             header
+            if model.browserDenied {
+                Button(action: fixBrowser) {
+                    Text(L("⚠️ 讀不到瀏覽器分頁，關掉的網頁不會自動離開清單。點這裡到「自動化」打開 Crumbs → Chrome",
+                           "⚠️ Can't read browser tabs, so closed pages won't leave the list. Click to allow Crumbs → Chrome under Automation"))
+                        .font(.system(size: 12)).multilineTextAlignment(.leading)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(.horizontal, 10).padding(.vertical, 6)
+                        .background(Color.orange.opacity(0.16), in: RoundedRectangle(cornerRadius: 9))
+                }
+                .buttonStyle(.plain)
+            }
             if let n = model.prev?.note, !n.isEmpty {
                 Text(L("你說過要：", "You said: ") + n)
                     .font(.system(size: 12.5))
@@ -370,7 +425,22 @@ struct OverlayView: View {
             if model.later.count > 4 {
                 Text(L("還有 \(model.later.count - 4) 件，在主頁「接下來」", "\(model.later.count - 4) more in “Up next” on the main window")).font(.system(size: 11)).foregroundStyle(.tertiary).padding(.leading, 8)
             }
-            field(.later, icon: "plus", text: $model.laterText, placeholder: L("等一下要做…（可以貼還沒點開的網址）", "Do later… (you can paste a link you haven't opened)"), submit: addLater)
+            field(.later, icon: "plus", text: $model.laterText, placeholder: L("等一下要做…（可以一次貼好幾行，或還沒點開的網址）", "Do later… (paste several lines, or a link you haven't opened)"), submit: addLater)
+            if !model.pasted.isEmpty {
+                VStack(alignment: .leading, spacing: 2) {
+                    ForEach(Array(model.pasted.enumerated()), id: \.offset) { _, line in
+                        HStack(spacing: 8) {
+                            Image(systemName: "plus.circle").font(.system(size: 12)).foregroundStyle(crumbOrange)
+                            Text(line).font(.system(size: 13)).lineLimit(1)
+                        }
+                        .padding(.horizontal, 8).padding(.vertical, 3)
+                    }
+                    Text(L("按 Enter 加入這 \(model.pasted.count) 項 · Esc 取消", "Enter adds these \(model.pasted.count) · Esc cancels"))
+                        .font(.system(size: 11)).foregroundStyle(.secondary).padding(.leading, 8).padding(.top, 2)
+                }
+                .padding(.vertical, 4)
+                .background(crumbOrange.opacity(0.08), in: RoundedRectangle(cornerRadius: 10))
+            }
         }
     }
 
